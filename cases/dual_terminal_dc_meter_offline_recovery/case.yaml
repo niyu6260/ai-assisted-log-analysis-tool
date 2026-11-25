@@ -1,0 +1,68 @@
+id: dual_terminal_dc_meter_offline_recovery
+title: IDC480EC Terminal 1 and Terminal 2 transient L20 meter offline faults
+detector: dual_terminal_l20_recovery
+input: 'C:\failure case logs\DC meter offline.zip'
+scope: non_charging_incident
+
+incident:
+  start: '2026-07-08T03:47:20Z'
+  end: '2026-07-08T06:44:00Z'
+
+source_selection:
+  serial_number: A2611402819
+  related_serial_numbers:
+    - A2532825463
+  modules:
+    - MainProcess
+  include_rotated: false
+
+ground_truth:
+  symptom: >
+    The IDC480EC reported Err_LEM_DC_METER_OFFLINE/L20 on Terminal 1 at
+    03:47:31 UTC and Terminal 2 at 06:43:01 UTC. Each affected connector
+    briefly entered Fault and then returned toward Available.
+  root_cause: >
+    The TCU meter polling mechanism behaved as designed: repeated REST
+    communication failures exhausted i_isOnlineCounter, raised L20, and the
+    fault cleared after communication recovered. The initiating interruption
+    was transient and its physical/software source is not established.
+  confidence: low
+  confirmation_status: probable
+  trigger_hypothesis: >
+    A short REST or internal Ethernet communication interruption exceeded the
+    approximately 60-second meter-offline threshold. A later successful reply
+    reset online state and cleared the connector fault.
+  missing_proof:
+    - Per-request HTTP result and latency for the minute before each offline threshold.
+    - Packet capture between each TCU and LEM meter during both events.
+    - Exact i_isOnlineCounter decrement/reset trace.
+    - Evidence identifying Ethernet, LEM HTTP service, or TCU scheduling as the initiating layer.
+  customer_context_needed:
+    - Whether maintenance or network work occurred around both timestamps.
+    - Whether future occurrences show the same time interval, terminal order, or meter IP.
+
+expected:
+  findings:
+    - dual_terminal_l20_trigger_clear_mechanism_confirmed
+    - dual_terminal_meter_communication_interruption_probable
+  forbidden_findings:
+    - s20_state_lifecycle_inconsistency_probable
+    - connector2_lem_http_service_hang_probable
+    - persistent_meter_hardware_failure
+    - stuck_l20_error
+
+metadata:
+  charger_model: 480EC
+  primary_charger_id: A2491508085
+  terminal_serial_map:
+    A2611402819: Terminal1
+    A2532825463: Terminal2
+  reported_faults:
+    Terminal1: '2026-07-08T03:47:31Z'
+    Terminal2: '2026-07-08T06:43:01Z'
+  monitoring_recommendation: >
+    Continue monitoring for recurrence patterns; preserve REST response details
+    before power cycling if a future L20 does not clear automatically.
+  attachments:
+    - 'C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-b4f357eb-50cd-4494-bcde-0ef1ecaa046c.png'
+    - 'C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-81d94cd9-89ba-4ba1-9971-8facc96a7aaf.png'

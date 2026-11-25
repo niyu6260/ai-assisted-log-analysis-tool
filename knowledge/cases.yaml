@@ -1,0 +1,43 @@
+cases:
+  - id: precharge_voltage_difference
+    title: Precharge voltage difference protection
+    category: precharge_voltage_mismatch
+    affected_domain: power
+    severity: high
+    confidence: medium
+    signature:
+      event_types:
+        - PRECHARGE
+        - ALARM
+        - EMERGENCY_STOP
+      domains:
+        - iso15118
+      text_any:
+        - voltage difference
+        - output voltage over ev request voltage
+    root_cause: >
+      The observed sequence matches a confirmed case in which precharge was stopped by
+      output-versus-EV voltage difference protection.
+    recommended_actions:
+      - Compare residual DC bus voltage with the EV requested voltage.
+      - Verify the configured precharge voltage-difference threshold.
+
+  - id: slac_timeout_before_v2g
+    title: SLAC timeout before ISO 15118 session
+    category: slac_negotiation
+    affected_domain: plc_slac
+    severity: high
+    confidence: medium
+    signature:
+      event_types:
+        - PROTOCOL_ERROR
+      domains:
+        - plc_slac
+      text_any:
+        - slac
+        - match failed
+    root_cause: >
+      PLC association did not complete, so the higher-level ISO 15118 session could not
+      be established.
+    recommended_actions:
+      - Compare PEV and EVSE MAC addresses and identify the first missing SLAC response.

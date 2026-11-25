@@ -1,0 +1,47 @@
+schema_version: '1.0'
+description: Versioned golden-case contract for charger incident diagnosis.
+
+required:
+  - schema_version
+  - case_id
+  - title
+  - source
+  - charger
+  - incident
+  - labels
+  - governance
+
+fields:
+  source:
+    required: [archive_uri, raw_access]
+    raw_access: [restricted, internal, anonymized]
+  charger:
+    required: [model, serial_numbers]
+  incident:
+    required: [start, end, customer_symptom]
+  labels:
+    required:
+      - domains
+      - root_cause_category
+      - root_cause_summary
+      - conclusion_status
+      - confidence
+    domains: [cp, plc_slac, iso15118, power, ocpp, network, system, unknown]
+    conclusion_status: [confirmed, probable, inconclusive]
+    confidence: [high, medium, low]
+    evidence_roles: [support, counter, context]
+  governance:
+    required: [label_status, label_version, split, reviewers]
+    label_status: [draft, reviewed, gold]
+    split: [train, validation, blind, unassigned]
+    gold_minimum_reviewers: 2
+
+leakage_policy:
+  description: >
+    Cases sharing a site, vehicle, repeated incident, or derived archive group
+    must remain in one split.
+  group_key_examples:
+    - site:<site-id>
+    - vehicle:<vehicle-or-fleet-id>
+    - incident:<repeat-family-id>
+    - archive:<source-sha256>

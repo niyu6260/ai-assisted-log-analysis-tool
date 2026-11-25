@@ -1,0 +1,542 @@
+schema_version: 1
+knowledge_id: sungrow_tcu_ccu_diagnostic_architecture
+title: TCU/CCU diagnostic architecture
+vendor: Sungrow
+status: partial
+confidentiality:
+  source_classification: confidential
+  raw_documents_in_repository: false
+  handling_note: Store only diagnostic facts derived from the supplied screenshots.
+
+scope:
+  purpose: Cross-component log attribution and evidence-boundary reasoning.
+  confirmed_platforms:
+    - 180kW dual-connector architecture shown in the supplied CCU document
+  possible_platforms_requiring_confirmation:
+    - 30E
+    - 30R-1000
+    - 180E
+    - 480E
+    - 480EC
+  limitations:
+    - The screenshots establish component responsibilities and communication paths, not complete runtime behavior.
+    - Timeout values, retry counts, message schemas, and fault trigger/clear rules require separate sources.
+    - Do not assume the 180kW main/secondary CCU topology applies unchanged to other models.
+
+sources:
+  tcu_overview:
+    document_reference: RD-015/2.0
+    sections:
+      - "1.1 Program runtime environment"
+      - "1.2 System overview"
+      - "1.3 Front/back interaction"
+      - "1.4 TCU package layout"
+    pages: [1, 2, 3]
+  ccu_overview:
+    document_reference: CCU design document excerpt
+    sections:
+      - "2.2 Module introduction"
+      - "3 Main/secondary CCU architecture and network architecture"
+    pages: [5, 6]
+  tcu_runtime_mechanisms:
+    document_reference: RD-015/2.0
+    sections:
+      - "5.8.1 Hierarchical state machine"
+      - "5.8.2 State-machine business interface"
+      - "5.8.3 Back-end business state-machine design"
+      - "5.9 Task implementation"
+      - "5.9.2 Log rolling storage"
+      - "5.9.3 Pipe communication queue"
+    figures:
+      - "5.23-5.31 Hierarchical and business state-machine design"
+      - "5.34-5.35 Thread_Log and log rolling sequence"
+      - "5.36 Pipe message queue control"
+      - "5.32 TaskImplementation"
+
+components:
+  tcu_linux:
+    label: TCU Linux platform
+    layer: system
+    responsibilities:
+      - Process management
+      - Operating-system services
+    diagnostic_relevance:
+      - Process lifecycle and operating-system failures can affect every TCU application.
+
+  tcu_network:
+    label: TCU OS network processes
+    layer: network
+    responsibilities:
+      - Linux network drivers
+      - Network process management
+    diagnostic_relevance:
+      - Link, route, DNS, and interface evidence belongs here rather than to OCPP by default.
+
+  tcu_monitoring:
+    label: TCU monitoring scripts
+    layer: system
+    responsibilities:
+      - Support and monitor TCU application runtime
+    diagnostic_relevance:
+      - Script restart or cleanup evidence may explain service recovery without proving an external network outage.
+
+  tcu_front_logic:
+    label: TCU front-logic program
+    layer: application
+    implementation:
+      - Qt
+      - QML
+      - C++
+    responsibilities:
+      - UI presentation
+      - Human-machine interaction
+      - Parse and forward front/back messages
+    diagnostic_relevance:
+      - Displayed state is downstream evidence and may lag the controller state that produced it.
+
+  tcu_back_logic:
+    label: TCU back-logic program
+    layer: application
+    implementation:
+      - C++
+    responsibilities:
+      - Event handling
+      - Link handling
+      - OCPP handling
+      - CCU communication
+      - Logs and debugging
+      - Payment handler
+      - Backend-server handling
+      - Inter-process coordination
+    diagnostic_relevance:
+      - MainProcess and related C++ logs are central evidence for orchestration and CCU/backend mediation.
+
+  tcu_java:
+    label: TCU Java services
+    layer: application
+    implementation:
+      - Java
+    responsibilities:
+      - OCPP communication
+      - Maintenance/backend-server communication
+      - OTA processing
+      - Card-reader handling
+      - CCP handling
+    diagnostic_relevance:
+      - Customer OCPP and maintenance-backend availability must be diagnosed as separate service paths.
+
+  ccu_charging_controller:
+    label: CCU charging controller
+    layer: control
+    runtime:
+      - FreeRTOS
+    responsibilities:
+      - DIN 70121 application communication
+      - SLAC association
+      - ISO 15118 unencrypted application communication
+      - TCU communication
+      - IEC 61851-23 charging-sequence control
+      - CP state measurement and state management
+      - Insulation monitoring
+      - Fault monitoring and recovery
+      - LED state control
+      - Sampling-value filtering
+      - Network protocol stack
+      - Firmware transfer and upgrade
+      - PCU request management
+    diagnostic_relevance:
+      - CCU logs prove controller observations and decisions, but do not always prove physical PCU output.
+
+  pcu_controller:
+    label: PCU controller
+    layer: power_control
+    responsibilities:
+      - Allocate power-module resources from voltage/current requests
+      - Communicate with power modules
+      - Transfer DSP firmware upgrades
+      - Collect environmental data
+      - Control fans and heaters
+    diagnostic_relevance:
+      - Module switching, allocation, and real output questions require PCU or power-module evidence.
+
+  power_modules:
+    label: Power-module groups
+    layer: power_hardware
+    responsibilities:
+      - Produce controlled DC power
+      - Report module state and faults
+    diagnostic_relevance:
+      - Power-module traces are primary evidence for actual module response and hardware faults.
+
+  dc_meters:
+    label: Connector DC meters
+    layer: measurement
+    responsibilities:
+      - Measure connector electrical values
+      - Expose meter status to the charger
+    diagnostic_relevance:
+      - Ping success proves IP reachability only; status-service health requires application-level evidence.
+
+  ev:
+    label: Electric vehicle
+    layer: external
+    responsibilities:
+      - Participate in CP, SLAC, DIN 70121 or ISO 15118 charging negotiation
+      - Supply target and limit requests
+    diagnostic_relevance:
+      - Vehicle requests are distinct from charger limits and actual charger output.
+
+communication_paths:
+  - id: tcu_front_to_back
+    from: tcu_front_logic
+    to: tcu_back_logic
+    direction: bidirectional
+    transport:
+      - Unix domain socket
+    purpose:
+      - UI requests
+      - UI data and state updates
+    confidence: confirmed
+
+  - id: tcu_back_to_java
+    from: tcu_back_logic
+    to: tcu_java
+    direction: bidirectional
+    transport:
+      - IPC pipe
+      - FIFO file
+    purpose:
+      - OCPP and backend service coordination
+    confidence: confirmed
+
+  - id: tcu_to_ccu
+    from: tcu_back_logic
+    to: ccu_charging_controller
+    direction: bidirectional
+    transport:
+      - UDPv4
+      - Private TCU-CCU protocol
+    purpose:
+      - Charging requests
+      - Controller data and fault reporting
+      - Main/secondary CCU message relay
+    confidence: confirmed
+
+  - id: ccu_to_ev_high_level
+    from: ccu_charging_controller
+    to: ev
+    direction: bidirectional
+    transport:
+      - UDPv6
+      - TCPv6
+    application_protocols:
+      - DIN 70121
+      - ISO 15118
+    purpose:
+      - High-level charging communication
+    confidence: confirmed
+
+  - id: ccu_to_ev_cp
+    from: ccu_charging_controller
+    to: ev
+    direction: bidirectional
+    transport:
+      - CP electrical signal
+    application_protocols:
+      - IEC 61851
+    purpose:
+      - Connection and charging-state signalling
+    confidence: confirmed
+
+  - id: ccu_to_pcu
+    from: ccu_charging_controller
+    to: pcu_controller
+    direction: bidirectional
+    transport:
+      - Internal message queue
+      - Platform private protocol
+    purpose:
+      - Power requests
+      - Output parameters
+      - PCU faults
+    confidence: confirmed
+
+  - id: pcu_to_power_modules
+    from: pcu_controller
+    to: power_modules
+    direction: bidirectional
+    transport:
+      - CAN
+    purpose:
+      - Module commands, telemetry, and faults
+    confidence: confirmed
+
+  - id: controller_to_dc_meters
+    from: ccu_charging_controller
+    to: dc_meters
+    direction: bidirectional
+    transport:
+      - Modbus/TCP/UDP
+    purpose:
+      - Connector metering and meter status
+    confidence: probable
+    note: The screenshot labels the meter interface collectively; exact protocol selection by model requires confirmation.
+
+model_topologies:
+  idc180_dual_connector:
+    applies_when: The charger uses the documented 180kW main/secondary CCU design.
+    main_ccu:
+      capabilities:
+        - Charging control
+        - Vehicle communication
+        - Contactor output
+        - Whole-charger sampling
+        - Power allocation
+        - Environmental-data acquisition
+        - Whole-charger information reporting
+    secondary_ccu:
+      capabilities:
+        - Charging control
+        - Vehicle communication
+        - Local connector sampling
+        - Contactor output
+    mediation_rules:
+      - Main and secondary CCU charging requests are coordinated through the TCU.
+      - The secondary CCU obtains shared PCU output information through TCU forwarding.
+      - Whole-charger environmental and shared protection data may be observed first by the main CCU and relayed through the TCU.
+
+runtime_mechanisms:
+  log_rolling:
+    owner: tcu_back_logic
+    implementation: Thread_Log
+    channel_creation:
+      - Log channels can be created at initialization or dynamically at runtime.
+      - Each log type has independent buffered data and current/old file names.
+    known_log_types:
+      - CCU_Serial_Log
+      - CCU_Ethernet_Gun_1_Log
+      - Fault_State_Gun_1_Log
+      - Charging_Gun_1_Log
+      - FWUpdate_Log
+    flush_sequence:
+      - Iterate over each registered log buffer.
+      - Append buffered records to the current file.
+      - Clear that channel's in-memory buffer after writing.
+      - When the current file exceeds maxsize, delete the previous old file.
+      - Rename the current file as the old file.
+      - Start a new empty current file.
+    diagnostic_implications:
+      - The old and current files form one chronological stream and should be parsed together.
+      - A fault trigger can be in the old file while its recovery is in the current file.
+      - Missing rotated files can remove the causal lead-up even when the final fault remains visible.
+      - File rotation is size-driven; a file boundary does not indicate a reboot or session boundary.
+      - Events around the rotation boundary should be deduplicated only by event identity, not by filename.
+    unknowns:
+      - Concrete maxsize and refreshTime values by software version.
+      - Exact physical filename for each Log_Type_Enum value.
+      - Whether every write/rename operation is atomic during power loss.
+
+  pipe_message_queues:
+    owner: tcu_back_logic
+    implementation:
+      - StoringPipeMessages
+      - SendingPipeMessages
+      - blocking_queue
+      - IPC_Pipe
+    behavior:
+      - Incoming pipe messages are stored and parsed asynchronously.
+      - Outgoing messages are queued and sent through a dedicated pipe.
+      - An exit flag permits blocked workers to wake and terminate cleanly.
+    known_users:
+      - OCPP module
+      - Card-reader command module
+    diagnostic_implications:
+      - Producer and consumer log timestamps may differ because messages cross asynchronous queues.
+      - A send log proves enqueue or transmission intent unless a receiver acknowledgement is also present.
+      - Queue delay or process shutdown can mimic downstream service latency.
+    unknowns:
+      - Queue capacity and overflow behavior.
+      - Message correlation identifiers.
+      - Retry and acknowledgement semantics.
+
+  hierarchical_state_machine:
+    owner: tcu_back_logic
+    implementation:
+      base_class: State_Base
+      hierarchy:
+        - One root state owns nested child-state collections.
+        - Each state can itself be a complete child state machine.
+        - States share a common public interface through the base class.
+      mappings:
+        trigger_map: Maps trigger values to candidate next states.
+        function_map: Maps enter, exit, follow-up, and event callbacks.
+        event_map: Maps state events to business-layer callbacks.
+    switching_sequence:
+      - Receive a state-switch request with a trigger value.
+      - Search the current state and child hierarchy for a matching trigger.
+      - Exit the previous state.
+      - Enter the selected state.
+      - Run the selected state's follow-up behavior.
+      - Invoke mapped business callbacks.
+    business_interface:
+      implementation: State_Machine_Interface
+      purpose:
+        - Isolate reusable state-machine mechanics from application business logic.
+        - Register external callbacks for state functions and events.
+    diagnostic_implications:
+      - Parent state alone may be too coarse; retain both parent and leaf-state evidence.
+      - One trigger can cause multiple ordered logs from exit, enter, follow-up, and business callbacks.
+      - Repeated state lines near one transition are not automatically repeated physical transitions.
+      - A state transition request is not proof that entry completed; look for enter/follow-up evidence.
+      - Fault recovery should be confirmed by transition into a non-fault leaf state, not only by alarm clear.
+    unknowns:
+      - Complete trigger-to-state map.
+      - Per-state entry, exit, and event guards.
+      - Timeout-driven transitions.
+
+  backend_business_state_machine:
+    owner: tcu_back_logic
+    top_level_states:
+      - Unplugged
+      - Authorizing
+      - EnergyTransfer
+      - Stopping
+      - Finishing
+      - Fault_Plugged
+      - Fault_Unplugged
+      - Inoperative_Plugged
+      - Inoperative_Unplugged
+    confirmed_substates:
+      Unplugged:
+        - Unplugged_Unauthorized
+        - Unplugged_Authorized
+      Authorizing:
+        - Plugged_Unauthorized
+        - Plugged_Authorized
+      EnergyTransfer:
+        - Preparing
+        - Charging
+        - Unplugged
+      Finishing:
+        - Unplugged
+        - With transaction
+        - HardSoftreset
+    cross_system_inputs:
+      - OCPP platform state
+      - TCU fault state
+      - CCU fault state
+      - Plug state
+      - Authorization and transaction state
+    diagnostic_implications:
+      - Connector availability is a derived state influenced by plug, transaction, OCPP, TCU, and CCU inputs.
+      - A visible Available, Faulted, Inoperative, or Finishing state does not by itself identify the originating subsystem.
+      - Charging-session analysis should preserve top-level and nested states rather than flattening them.
+      - Faulted while plugged and faulted while unplugged are distinct lifecycle states.
+    unknowns:
+      - Full transition graph and guards shown in the unreadable detailed figure.
+      - Exact OCPP status emitted for every nested state.
+
+  task_execution:
+    owner: tcu_back_logic
+    implementation: TaskImplementation
+    known_tasks:
+      - DC meter processing
+      - OCPP message processing
+      - Card-reader status processing
+      - Charging-station status refresh and notification
+      - Log acquisition and rolling-file storage
+      - Power/current request aggregation and forwarding
+      - CCU FTP upgrade
+    diagnostic_implications:
+      - Failures in one task should not automatically be attributed to the full TCU process.
+      - Shared process scheduling can introduce timing correlations without a shared external root cause.
+
+evidence_boundaries:
+  - claim: Customer OCPP backend is unavailable.
+    minimum_evidence:
+      - Java/OCPP connection or protocol events
+    insufficient_evidence:
+      - Maintenance-backend failure alone
+      - UI offline indication alone
+
+  - claim: Physical network path is down.
+    minimum_evidence:
+      - Link-state, route, ARP, ping, or packet-level failure
+    insufficient_evidence:
+      - HTTP request timeout alone
+    rationale: An endpoint can remain pingable while its application service is hung.
+
+  - claim: PCU physically produced an overvoltage or current transient.
+    minimum_evidence:
+      - Time-aligned PCU, power-module, or independent meter telemetry
+    insufficient_evidence:
+      - CCU sampled value alone
+      - Stale connector-power value
+
+  - claim: Vehicle requested a target or limit.
+    minimum_evidence:
+      - Decoded DIN 70121 or ISO 15118 message from the relevant connector
+    insufficient_evidence:
+      - EVSE limit
+      - Actual power output
+
+  - claim: Display fault proves active controller fault.
+    minimum_evidence:
+      - Controller or backend fault lifecycle event correlated with the display event
+    insufficient_evidence:
+      - Front-logic display state alone
+
+  - claim: A file boundary marks a reboot or a new charging session.
+    minimum_evidence:
+      - Explicit process start, boot, uptime reset, or session-start evidence
+    insufficient_evidence:
+      - Transition from an old rotated log file to its current file
+
+  - claim: A requested state transition completed.
+    minimum_evidence:
+      - Matching state entry, follow-up, or resulting business-state evidence
+    insufficient_evidence:
+      - State-switch request alone
+
+  - claim: A queued IPC message was processed by its consumer.
+    minimum_evidence:
+      - Receiver-side processing or correlated acknowledgement
+    insufficient_evidence:
+      - Sender enqueue event alone
+
+diagnostic_routing:
+  - symptom: OCPP or maintenance backend disconnected
+    inspect_first:
+      - tcu_java
+      - tcu_network
+      - tcu_back_logic
+  - symptom: CP State E or charging-state transition anomaly
+    inspect_first:
+      - ccu_charging_controller
+      - ev
+  - symptom: SLAC or high-level communication timeout
+    inspect_first:
+      - ccu_charging_controller
+      - ev
+      - tcu_back_logic
+  - symptom: Output tracking, module switching, or PM fault
+    inspect_first:
+      - pcu_controller
+      - power_modules
+      - ccu_charging_controller
+  - symptom: DC meter offline
+    inspect_first:
+      - dc_meters
+      - tcu_network
+      - tcu_back_logic
+
+open_questions:
+  - Exact TCU log filename and process/component mapping.
+  - Exact IPC message schemas between front logic, back logic, and Java services.
+  - Exact TCU-CCU private-protocol fields, periods, timeouts, and retry behavior.
+  - Exact protocol used by each DC meter model.
+  - Model-specific differences for 30E, 30R-1000, 180E, 480E, and 480EC.
+  - Fault trigger, latching, propagation, and clear rules.
+  - Software-version-specific architecture changes.
+  - Full backend business-state transition map and OCPP status mapping.
+  - Log maxsize, flush period, write atomicity, and filename conventions by release.

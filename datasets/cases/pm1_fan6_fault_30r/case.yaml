@@ -1,0 +1,81 @@
+schema_version: '1.0'
+case_id: pm1_fan6_fault_30r
+title: 30R PM1 Fan 6 fault removes the only power module
+source:
+  archive_uri: C:\failure case logs\PM Error issue.zip
+  raw_access: restricted
+  anonymization_status: not_reviewed
+  legacy_case_path: cases/pm1_fan6_fault_30r/case.yaml
+charger:
+  model: 30R
+  serial_numbers:
+  - A2620503658
+  firmware_versions: []
+incident:
+  start: '2026-08-31T14:18:50Z'
+  end: '2026-08-31T14:47:00Z'
+  timezone: UTC
+  customer_symptom: 'Tesla Model 3 starts Plug & Play charging and reaches the configured 25 kW, then
+    output drops to zero and the session ends with PM1 and fan errors.
+
+    '
+labels:
+  domains:
+  - power
+  root_cause_category: power_conversion_or_module
+  root_cause_summary: 'PM1 enters fault with Fan6Speedabnormal, HARD_PFC_FAULT, and PFC_FAULT_FLAG. Because
+    this 30R has only one 30 kW power module, ValidMdNum becomes zero and charging cannot continue. The
+    exact failed part—fan, supply, feedback wiring, or PM1 control/sensing—requires field isolation.
+
+    '
+  conclusion_status: probable
+  confidence: medium
+  trigger_hypothesis: 'Fan 6 is not rotating correctly or PM1 loses its speed-feedback signal, causing
+    the module PFC/LLC protection chain to enter Fault.
+
+    '
+  expected_findings:
+  - sdsp_update_success_pm_fault_persisted_confirmed
+  - charger_25kw_limit_operated_correctly_confirmed
+  - pm1_fault_removed_only_power_module_confirmed
+  - pm1_fan6_or_feedback_path_fault_probable
+  forbidden_findings:
+  - tesla_compatibility_failure
+  - charger_power_limit_failure
+  - backend_disconnection
+  evidence: []
+  missing_evidence:
+  - Fan 6 supply voltage and tachometer/speed-feedback waveform during fault.
+  - Physical inspection for obstruction, connector damage, or loose wiring.
+  - A/B test with a known-good fan or power module.
+  - Successful sustained-load verification after repair.
+  recommended_actions: []
+governance:
+  label_status: reviewed
+  label_version: '1.0'
+  split: unassigned
+  reviewers:
+  - legacy-expert
+  group_keys:
+  - archive:pm error issue.zip
+  imported_at: '2026-11-25T09:37:10.098515+00:00'
+legacy:
+  detector: single_pm_fan_fault
+  customer_context_needed:
+  - Whether fan noise, intermittent startup, or temperature dependence was observed.
+  - Field isolation result and replaced component.
+  metadata:
+    charger_model: 30R
+    charger_serial_number: A2620503658
+    vehicle: Tesla Model 3 Dual Motor
+    charging_mode: PlugAndPlay
+    configured_power_limit_kW: 25
+    power_module_count: 1
+    power_module: PM1
+    displayed_pm_errors:
+    - 56
+    - 90
+    - 114
+    sdsp_update:
+      from: 04.0E3.003.001.03
+      to: 04.0E3.003.001.05

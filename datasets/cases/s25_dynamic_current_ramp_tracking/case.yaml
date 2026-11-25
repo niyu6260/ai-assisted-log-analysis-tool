@@ -1,0 +1,80 @@
+schema_version: '1.0'
+case_id: s25_dynamic_current_ramp_tracking
+title: IDC480E S25 after abrupt 250 kW to 15 kW profile reduction
+source:
+  archive_uri: C:\failure case logs\DC_Output_Current_Over_Ev_Request issue.zip
+  raw_access: restricted
+  anonymization_status: not_reviewed
+  legacy_case_path: cases/s25_dynamic_current_ramp_tracking/case.yaml
+charger:
+  model: 480E
+  serial_numbers:
+  - A2522206675
+  firmware_versions: []
+incident:
+  start: '2026-08-14T11:24:30Z'
+  end: '2026-08-14T11:24:50Z'
+  timezone: UTC
+  customer_symptom: 'A truck charging at approximately 247 kW stopped with Current_Demand_Fault/DC_Output_Current_Over_Ev_Request
+    and OCPP S25 after the platform removed a 250 kW charging profile and a 15 kW profile became effective.
+
+    '
+labels:
+  domains:
+  - power
+  - iso15118
+  root_cause_category: power_conversion_or_module
+  root_cause_summary: 'The abrupt smart-charging step from approximately 250 kW to 15 kW initiated a dynamic
+    ramp-down. The truck reduced EVTargetCurrent gradually, but the charger/PCU output-current reduction
+    lagged behind the truck''s changing request by approximately 14-25 A. The sustained tracking error
+    triggered S25 after roughly ten seconds and terminated charging.
+
+    '
+  conclusion_status: confirmed
+  confidence: high
+  trigger_hypothesis: 'Profile removal exposed a much lower default profile without a coordinated ramp
+    transition. The truck''s slow response to the new 18.9 A EVSE limit prolonged the transient, while
+    charger output tracked even more slowly.
+
+    '
+  expected_findings:
+  - smart_profile_abrupt_step_down_confirmed
+  - s25_dynamic_current_tracking_lag_confirmed
+  - ev_slow_compliance_with_new_limit_contributed
+  forbidden_findings:
+  - charger_rated_overcurrent
+  - vehicle_overcurrent_primary_root_cause
+  - power_module_hardware_failure
+  evidence: []
+  missing_evidence:
+  - High-frequency PCU module current commands and measured output during the transition.
+  - Firmware-specific S25 current-difference threshold and timer configuration.
+  - Required EV response behavior for a sudden EVSEMaximumCurrent reduction.
+  recommended_actions: []
+governance:
+  label_status: reviewed
+  label_version: '1.0'
+  split: unassigned
+  reviewers:
+  - legacy-expert
+  group_keys:
+  - archive:dc_output_current_over_ev_request issue.zip
+  imported_at: '2026-11-25T09:37:10.104570+00:00'
+legacy:
+  detector: s25_dynamic_ramp_tracking
+  customer_context_needed:
+  - Reason the platform deleted the 250 kW profile during active charging.
+  - Whether the 250 kW to 15 kW step is expected operational behavior.
+  metadata:
+    charger_model: 480E
+    terminal_serial_number: A2522206675
+    connector_id: 1
+    charging_profile_removed:
+      id: 1786703411
+      stack_level: 3
+      limit_kW: 250
+    remaining_profile_limit_kW: 15
+    evse_max_current_A: 18.9
+    soc_percent: 72
+    vendor_error: S25
+    internal_stop_reason: DC_Output_Current_Over_Ev_Request

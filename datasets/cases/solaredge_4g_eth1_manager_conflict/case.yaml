@@ -1,0 +1,61 @@
+schema_version: '1.0'
+case_id: solaredge_4g_eth1_manager_conflict
+title: SolarEdge disconnection during 4G channel switching
+source:
+  archive_uri: C:\failure case logs\Solareldisconnection 4Gchannelswitching.zip
+  raw_access: restricted
+  anonymization_status: not_reviewed
+  legacy_case_path: cases/solaredge_4g_eth1_manager_conflict/case.yaml
+charger:
+  model: unknown
+  serial_numbers:
+  - A24C0215369
+  firmware_versions: []
+incident:
+  start: '2026-08-10T09:50:40Z'
+  end: '2026-08-10T16:39:30Z'
+  timezone: UTC
+  customer_symptom: 'SolarEdge connectivity was reported disconnected during network mode switching; OCPP
+    connectivity was intermittent rather than continuously unavailable.
+
+    '
+labels:
+  domains:
+  - network
+  - system
+  root_cause_category: charger_configuration
+  root_cause_summary: 'Network mode transitions and competing DLM/ALM and 4G router management of eth1
+    are a plausible cause. After DLM/ALM management stopped, routerMode took over; several router scripts
+    were marked ready to kill, and backend connectivity later recovered. The sequence is correlated but
+    does not establish direct causation.
+
+    '
+  conclusion_status: probable
+  confidence: medium
+  trigger_hypothesis: ''
+  expected_findings:
+  - eth1_network_manager_conflict_probable
+  forbidden_findings:
+  - vehicle_emergency_stop
+  - isolation_invalid_during_cablecheck
+  - precharge_voltage_diff_trip
+  evidence: []
+  missing_evidence:
+  - Direct process or netlink evidence showing both managers writing eth1 simultaneously.
+  - Process-exit evidence confirming that scripts marked ready to kill actually terminated.
+  recommended_actions: []
+governance:
+  label_status: reviewed
+  label_version: '1.0'
+  split: unassigned
+  reviewers:
+  - legacy-expert
+  group_keys:
+  - archive:solareldisconnection 4gchannelswitching.zip
+  imported_at: '2026-11-25T09:37:10.110122+00:00'
+legacy:
+  detector: network_manager_ownership_conflict
+  customer_context_needed: []
+  metadata:
+    confirmed_by: field_log_analysis
+    notes: DNS gateway was already reachable before takeover, so this is not labeled as a DNS root cause.

@@ -1,0 +1,68 @@
+batch_id: blind_batch_001
+frozen_at: '2026-09-14T09:42:00Z'
+analyzer_mode: automatic_complete_charger
+labels_revealed: false
+
+cases:
+  - id: blind-001
+    run: reports/blind/batch_001/blind-001/20260914T093336.861170Z
+    findings_sha256: f1106e9b6a7dd174722d6f40906dcc553abee6fda98d5e196997e4b60b5f33d6
+    events: 207138
+    sessions: 314
+    findings: 325
+    rule_counts:
+      inconclusive: 270
+      isolation_invalid_during_cablecheck: 25
+      network_connectivity_failure: 7
+      normal_ev_stop: 10
+      vehicle_emergency_stop: 13
+
+  - id: blind-002
+    run: reports/blind/batch_001/blind-002/20260914T093336.860975Z
+    findings_sha256: 30040b628a977c98b2c1adcd2b214d6f6839c3b3dd3e1890b62315d7e0e57a6f
+    events: 227965
+    sessions: 30
+    findings: 33
+    rule_counts:
+      inconclusive: 29
+      isolation_invalid_during_cablecheck: 1
+      network_connectivity_failure: 1
+      normal_ev_stop: 1
+      precharge_voltage_diff_trip: 1
+
+  - id: blind-003
+    run: reports/blind/batch_001/blind-003/20260914T093857.710450Z
+    findings_sha256: 0e600174033fefabc660f85d1fd975bad20caea173b20124ebcecb551d2dbd9d
+    events: 79448
+    sessions: 68
+    findings: 71
+    rule_counts:
+      inconclusive: 67
+      isolation_invalid_during_cablecheck: 1
+      normal_ev_stop: 1
+      precharge_voltage_diff_trip: 1
+      case:precharge_voltage_difference: 1
+
+  - id: blind-004
+    run: reports/blind/batch_001/blind-004/20260914T093857.734602Z
+    findings_sha256: 8ec0862d5d340f3ef3c377a3ae946839a7942335c98471bb61409ad5adb263ca
+    events: 33201
+    sessions: 3
+    findings: 3
+    rule_counts:
+      inconclusive: 3
+
+  - id: blind-005
+    run: reports/blind/batch_001/blind-005/20260914T093857.756905Z
+    findings_sha256: 93ddec8bc5d81e9b08a2590aa9541945ea4f2e6e70fcc1ac5bd0d407fb25a60a
+    events: 13823
+    sessions: 2
+    findings: 2
+    rule_counts:
+      inconclusive: 2
+
+observed_gaps:
+  - Whole-archive analysis lacks incident-window selection and overproduces historical sessions.
+  - Inconclusive findings are repeated per session instead of being ranked and consolidated.
+  - Generic authentication and VID-policy failures are not currently detected.
+  - Unknown artifacts remain high because many whole-charger file types lack registered parsers.

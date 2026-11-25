@@ -1,0 +1,36 @@
+id: fixture_tesla_precharge_residual_voltage
+title: Fixture Tesla residual-voltage PreCharge fault
+detector: precharge_residual_voltage
+input: tesla_precharge
+scope: charging_session
+
+incident:
+  start: '2026-07-20T15:43:50Z'
+  end: '2026-07-20T15:49:45Z'
+
+source_selection:
+  serial_number: A2611402819
+  modules:
+    - CCU_Ethernet1
+    - CCU_Ethernet2
+    - Fault_State1
+    - Fault_State2
+  include_rotated: false
+
+ground_truth:
+  symptom: Tesla PreCharge repeatedly stops at a 262-263 V request.
+  root_cause: Residual post-CableCheck voltage exceeds the EV request allowance.
+  confidence: medium
+  confirmation_status: probable
+  missing_proof:
+    - Relay feedback and bus-voltage decay trace.
+
+expected:
+  findings:
+    - precharge_output_over_ev_voltage_protection_confirmed
+    - post_cablecheck_residual_voltage_timing_probable
+  forbidden_findings:
+    - disable_precharge_overvoltage_protection
+
+metadata:
+  voltage_difference_threshold_V: 12

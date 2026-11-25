@@ -1,0 +1,55 @@
+id: bmw_i3_module_switch_current_dip
+title: BMW i3 stops after IDC480E power-module current dip
+detector: bmw_i3_module_switch_dip
+input: 'C:\failure case logs\BMW I3 charging issue.zip'
+scope: charging_session
+
+incident:
+  start: '2026-05-14T07:28:50Z'
+  end: '2026-05-14T07:32:40Z'
+
+source_selection:
+  serial_number: A2611304431
+  modules:
+    - CCU_Ethernet1
+  include_rotated: false
+
+ground_truth:
+  symptom: >
+    BMW i3 charging attempts on Connector 1 at 10:29 and 10:31:40 UTC+3
+    terminate while current is ramping upward.
+  root_cause: >
+    The BMW i3 increases EVTargetCurrent step by step. When output crosses the
+    capacity of one 30 kW module, the old PCU logic enables another module and
+    redistributes current. The resulting transient output-current drop causes the
+    vehicle to terminate charging.
+  confidence: high
+  confirmation_status: confirmed
+  trigger_hypothesis: >
+    Avoiding module-count changes during the rising-current phase prevents the
+    transient. The updated PCU logic therefore opens two modules immediately when
+    a BMW i3 session is detected.
+  missing_proof:
+    - Direct PCU module-on/module-count telegram at the exact current-drop timestamp.
+    - High-rate per-module current before and after current redistribution.
+    - Successful post-fix trace using the two-module pre-enable logic.
+  customer_context_needed:
+    - BMW i3 model year and vehicle software version.
+    - Old and fixed PCU software versions.
+
+expected:
+  findings:
+    - bmw_i3_stepwise_target_current_ramp_confirmed
+    - bmw_i3_module_switch_current_dip_root_cause
+  forbidden_findings:
+    - power_module_fault
+    - s3_vehicle_emergency_stop
+    - ev_invalid_target_voltage_precharge_stop_confirmed
+
+metadata:
+  charger_model: 480E
+  connector_id: 1
+  reported_attempts:
+    - '2026-05-14T10:29:00+03:00'
+    - '2026-05-14T10:31:40+03:00'
+  fix: Pre-enable two 30 kW power modules for detected BMW i3 sessions.

@@ -1,0 +1,46 @@
+taxonomy_version: '1.0'
+
+domains:
+  cp: IEC 61851 control-pilot signal and sensing path
+  plc_slac: PLC link and SLAC association
+  iso15118: DIN 70121 or ISO 15118 charging protocol
+  power: PCU, power module, meter, voltage, current, and power control
+  ocpp: Backend business flow and OCPP lifecycle
+  network: Link, route, DNS, TCP, TLS, APN, and carrier path
+  system: Process, firmware, configuration, resource, and internal service
+  unknown: Evidence is insufficient to assign a domain
+
+root_cause_categories:
+  - vehicle_request_or_bms_behavior
+  - protocol_state_machine
+  - cp_physical_or_sensing_path
+  - internal_network_or_endpoint
+  - external_network_or_backend_path
+  - backend_authorization_policy
+  - power_conversion_or_module
+  - metering_or_measurement
+  - charger_configuration
+  - firmware_regression
+  - process_or_service_failure
+  - normal_operation
+  - unresolved
+
+conclusion_status:
+  confirmed: Primary evidence directly establishes the causal chain.
+  probable: Evidence narrows the cause but one primary proof source is absent.
+  inconclusive: Available evidence cannot safely choose among material hypotheses.
+
+confidence:
+  high: Multiple independent sources support the same conclusion.
+  medium: One primary source plus consistent contextual evidence.
+  low: Weak, indirect, or incomplete evidence.
+
+evidence_roles:
+  support: Evidence supporting the conclusion.
+  counter: Evidence that rules out or weakens another hypothesis.
+  context: Relevant chronology without independent causal weight.
+
+review_policy:
+  draft: One analyst imported or authored the case.
+  reviewed: At least one named expert reviewed the labels.
+  gold: Two distinct experts approved evidence and root-cause labels.

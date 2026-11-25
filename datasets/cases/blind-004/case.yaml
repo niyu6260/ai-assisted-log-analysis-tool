@@ -1,0 +1,65 @@
+schema_version: '1.0'
+case_id: blind-004
+title: Blind benchmark blind-004
+source:
+  archive_uri: blind_tests/blind_batch_001/blind-004
+  raw_access: restricted
+  anonymization_status: not_reviewed
+  legacy_case_path: blind_tests/batch_001/revealed_labels.yaml
+charger:
+  model: unknown
+  serial_numbers:
+  - unknown
+  firmware_versions: []
+incident:
+  start: '1970-01-01T00:00:00Z'
+  end: '1970-01-01T00:00:00Z'
+  timezone: UTC
+  customer_symptom: See frozen blind-test intake and expert label.
+labels:
+  domains:
+  - ocpp
+  - system
+  root_cause_category: operation_reconnect_boot_state_not_reestablished
+  root_cause_summary: 'After a remote code-1006 close, FogNode re-established the Operation WebSocket
+    but did not restart the OCPP BootNotification lifecycle. The transport state remained Connected while
+    Boot Notification was not accepted for the new connection. Authorize requests were therefore ignored
+    locally, an empty AuthorizeConf caused NullPointerException and InternalError, and the terminal surfaced
+    NoEnable/S20. The card requests did not reach normal EU-platform authorization.
+
+    '
+  conclusion_status: confirmed
+  confidence: high
+  expected_findings:
+  - operation_reconnect_without_bootnotification
+  - authorize_blocked_by_local_boot_guard
+  - empty_authorize_response_causes_internal_error
+  forbidden_findings: []
+  evidence:
+  - role: support
+    description: 07:21:01 Operation EU WebSocket connected.
+  - role: support
+    description: 07:21:02 BootNotification sent.
+  - role: support
+    description: 07:21:25 EU returned BootNotification Accepted.
+  - role: support
+    description: 07:23:40 Operation connection closed remotely with code 1006.
+  - role: support
+    description: 07:23:48 WebSocket reconnected, but no new BootNotification was sent.
+  - role: support
+    description: 12:50–12:58 repeated card FD18845A attempts were locally ignored.
+  missing_evidence: []
+  recommended_actions: []
+governance:
+  label_status: reviewed
+  label_version: '1.0'
+  split: blind
+  reviewers:
+  - blind-test-expert
+  group_keys:
+  - blind:blind_batch_001:blind-004
+  imported_at: '2026-11-25T09:37:10.116573+00:00'
+legacy:
+  blind_batch: blind_batch_001
+  root_cause_categories:
+  - operation_reconnect_boot_state_not_reestablished

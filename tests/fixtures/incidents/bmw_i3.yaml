@@ -1,0 +1,30 @@
+id: fixture_bmw_i3_module_switch_dip
+title: Fixture BMW i3 module switch current dip
+detector: bmw_i3_module_switch_dip
+input: bmw_i3
+scope: charging_session
+
+incident:
+  start: '2026-05-14T07:29:50Z'
+  end: '2026-05-14T07:32:40Z'
+
+source_selection:
+  serial_number: A2611304431
+  modules:
+    - CCU_Ethernet1
+  include_rotated: false
+
+ground_truth:
+  symptom: BMW i3 stops during a stepwise current ramp.
+  root_cause: Enabling a second 30 kW module caused an output-current dip.
+  confidence: high
+  confirmation_status: confirmed
+  missing_proof:
+    - Direct module-on telegram.
+
+expected:
+  findings:
+    - bmw_i3_stepwise_target_current_ramp_confirmed
+    - bmw_i3_module_switch_current_dip_root_cause
+  forbidden_findings:
+    - s3_vehicle_emergency_stop

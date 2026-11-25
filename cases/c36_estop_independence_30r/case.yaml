@@ -1,0 +1,49 @@
+id: c36_estop_independence_30r
+title: 30R C36 predates and survives emergency-button C2/C37
+detector: c36_cp_state_e_lifecycle
+input: 'C:\failure case logs\C36 issue 01.zip'
+scope: non_charging_incident
+
+incident:
+  start: '2026-08-26T09:05:50Z'
+  end: '2026-08-26T09:08:00Z'
+
+source_selection:
+  serial_number: A25C0407837
+  modules:
+    - CCU_Ethernet1
+    - MainProcess
+    - ocpp
+  include_rotated: true
+
+ground_truth:
+  symptom: >
+    Connector 1 C36 remains active after the emergency button is released,
+    while C2 and C37 clear.
+  root_cause: >
+    C36 is CCU alarm 80 for non-forced CP State E. It was active before the
+    emergency-button event and has an independent lifecycle from C2/C37.
+  confidence: high
+  confirmation_status: confirmed
+  trigger_hypothesis: >
+    Connector 1 intermittently enters a genuine or sampled CP State E.
+  missing_proof:
+    - Physical CP-to-PE voltage during active C36.
+    - Oscilloscope capture of short CP voltage dips.
+
+expected:
+  findings:
+    - c36_cp_state_e_mapping_confirmed
+    - c36_preceded_estop_independent_confirmed
+    - c36_persisted_after_estop_release_confirmed
+  forbidden_findings:
+    - c36_caused_by_emergency_button
+    - ac_input_voltage_fault
+
+metadata:
+  charger_model: 30R
+  connector_id: 1
+  analysis_mode: estop_independence
+  firmware_updated_on: '2026-08-24'
+  c36_first_report_utc: '2026-08-26T09:06:19Z'
+  emergency_event_utc: '2026-08-26T09:07:27Z'

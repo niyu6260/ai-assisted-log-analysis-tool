@@ -1,0 +1,35 @@
+id: fixture_maintenance_backend_disconnection
+title: Fixture maintenance backend disconnect
+detector: maintenance_backend_disconnect
+input: maintenance_backend
+scope: non_charging_incident
+
+incident:
+  start: '2026-04-21T00:00:00Z'
+  end: '2026-04-23T00:05:00Z'
+
+source_selection:
+  serial_number: A2452508759
+  modules:
+    - MainProcess
+    - network
+    - router_network
+    - ocpp
+    - ocppSungrow
+  include_rotated: true
+
+ground_truth:
+  symptom: Maintenance backend disconnected while customer OCPP stayed active.
+  root_cause: The destination-specific failure remains unresolved.
+  confidence: low
+  confirmation_status: inconclusive
+  missing_proof:
+    - Route tables during the outage.
+    - Packet capture and backend server logs.
+
+expected:
+  findings:
+    - maintenance_backend_prolonged_disconnection_confirmed
+    - maintenance_backend_network_path_unresolved
+  forbidden_findings:
+    - eth1_network_manager_conflict_probable

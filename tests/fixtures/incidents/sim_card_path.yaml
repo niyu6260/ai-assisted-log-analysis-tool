@@ -1,0 +1,29 @@
+id: sim_card_path_fixture
+title: Operation backend times out through customer SIM
+detector: fognode_operation_path_failure
+input: sim_card_path_logs
+scope: non_charging_incident
+incident:
+  start: '2026-09-07T06:01:00Z'
+  end: '2026-09-07T06:12:30Z'
+source_selection:
+  serial_number: A2551504832
+  modules: []
+  include_files:
+    - VPowerCabinetFogNode.log
+    - syslog.log
+  utc_offset_hours_by_file:
+    syslog.log: 8
+ground_truth:
+  symptom: Customer operation backend drops after reboot.
+  root_cause: Customer SIM/APN to Operation port path is implicated.
+  confidence: medium
+  confirmation_status: probable
+  missing_proof:
+    - Packet capture.
+    - Controlled SIM A/B swap.
+expected:
+  findings:
+    - fognode_and_operation_initial_connection_confirmed
+    - operation_pong_timeout_and_reconnect_failure_confirmed
+    - customer_sim_to_operation_port_path_probable

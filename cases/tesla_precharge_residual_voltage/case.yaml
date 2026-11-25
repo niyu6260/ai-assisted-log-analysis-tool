@@ -1,0 +1,69 @@
+id: tesla_precharge_residual_voltage
+title: IDC480EC Tesla low-voltage PreCharge fault after CableCheck
+detector: precharge_residual_voltage
+input: 'C:\failure case logs\Precharge_Fault issue.zip'
+scope: charging_session
+
+incident:
+  start: '2026-07-20T15:43:50Z'
+  end: '2026-07-20T15:49:45Z'
+
+source_selection:
+  serial_number: A2611402819
+  modules:
+    - CCU_Ethernet1
+    - CCU_Ethernet2
+    - Fault_State1
+    - Fault_State2
+  include_rotated: false
+
+ground_truth:
+  symptom: >
+    A Tesla requesting approximately 262-263 V repeatedly stops during
+    PreCharge on both connectors with Precharge_Fault.
+  root_cause: >
+    CableCheck completes at a higher voltage and the charger commands a voltage
+    drop, but PreCharge begins before output voltage has settled close enough to
+    the Tesla target. The remaining output-to-request difference exceeds the
+    12 V safety threshold and triggers an EVSE emergency stop.
+  confidence: medium
+  confirmation_status: probable
+  trigger_hypothesis: >
+    The discharge path and relay/contactor transition do not have enough time,
+    or are not closed-loop verified, before the low-voltage PreCharge request is
+    evaluated.
+  missing_proof:
+    - High-rate DC bus and EV-side voltage from CableCheck completion through PreCharge.
+    - Relay/contactor command and auxiliary-contact feedback at sub-second resolution.
+    - Discharge resistor current and voltage-decay curve.
+    - Confirmation of which voltage sensor supplies the 18-39 V difference calculation.
+    - Successful post-fix trace on both connectors with the protection still enabled.
+  customer_context_needed:
+    - Tesla model, battery variant, and vehicle firmware version.
+    - Whether the same vehicle succeeds on chargers with a longer post-CableCheck delay.
+
+expected:
+  findings:
+    - precharge_output_over_ev_voltage_protection_confirmed
+    - post_cablecheck_residual_voltage_timing_probable
+  forbidden_findings:
+    - disable_precharge_overvoltage_protection
+    - vehicle_invalid_target_voltage
+    - cablecheck_isolation_failure
+
+metadata:
+  charger_model: 480EC
+  terminal_serial_number: A2611402819
+  vehicle: Tesla
+  requested_voltage_range_V:
+    - 262
+    - 263
+  voltage_difference_threshold_V: 12
+  reported_stop_reasons:
+    connector_1:
+      - '2026-07-20T15:44:16Z'
+      - '2026-07-20T15:46:33Z'
+      - '2026-07-20T15:48:11Z'
+    connector_2:
+      - '2026-07-20T15:49:23Z'
+      - '2026-07-20T15:49:30Z'

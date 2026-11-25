@@ -1,0 +1,74 @@
+schema_version: '1.0'
+case_id: mercedes_truck_invalid_target_voltage
+title: Mercedes Truck invalid target voltage on IDC480E
+source:
+  archive_uri: C:\failure case logs\Mercedes Truck charging issue.zip
+  raw_access: restricted
+  anonymization_status: not_reviewed
+  legacy_case_path: cases/mercedes_truck_invalid_target_voltage/case.yaml
+charger:
+  model: 480E
+  serial_numbers:
+  - A2551405827
+  - A2551405831
+  - A2541117859
+  firmware_versions: []
+incident:
+  start: '2026-05-11T06:40:00Z'
+  end: '2026-05-11T11:23:30Z'
+  timezone: UTC
+  customer_symptom: 'A Mercedes Truck could not charge on IDC480E A2551405827 after a controller update,
+    although it could charge on an Alpitronic charger.
+
+    '
+labels:
+  domains:
+  - iso15118
+  root_cause_category: vehicle_request_or_bms_behavior
+  root_cause_summary: 'Vehicle software generated an invalid target-voltage request below the IDC480E
+    minimum during precharge. After the vehicle''s internal software was updated, it charged normally
+    on the same charger.
+
+    '
+  conclusion_status: confirmed
+  confidence: high
+  trigger_hypothesis: 'The earlier vehicle software and IDC480E differed in ISO 15118 target-voltage validation
+    or interoperability behavior. The charger rejected the below-minimum request and executed its voltage-drop
+    safety response.
+
+    '
+  expected_findings:
+  - ev_invalid_target_voltage_precharge_stop_confirmed
+  - mercedes_vehicle_software_root_cause_confirmed
+  forbidden_findings:
+  - power_module_fault
+  - s3_vehicle_emergency_stop
+  - ev_estop_at_max_current_possible_fluctuation
+  evidence: []
+  missing_evidence:
+  - Exact Mercedes Truck software versions before and after the update.
+  - Raw ISO 15118 target-voltage value and EVSE minimum limit from a packet capture.
+  - Successful post-update CCU/ISO 15118 trace for field-by-field comparison.
+  recommended_actions: []
+governance:
+  label_status: reviewed
+  label_version: '1.0'
+  split: unassigned
+  reviewers:
+  - legacy-expert
+  group_keys:
+  - archive:mercedes truck charging issue.zip
+  imported_at: '2026-11-25T09:37:10.089070+00:00'
+legacy:
+  detector: ev_invalid_target_voltage
+  customer_context_needed:
+  - Mercedes Truck model and VIN-independent platform/ECU information.
+  - Charger controller version involved in the initial reported regression.
+  metadata:
+    charger_model: 480E
+    charger_serial_number: A2551405827
+    post_update_result: Vehicle charged normally after its internal software update.
+    attachments:
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-62be1d59-7fd9-4316-9557-04b21d334336.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-5899edd7-7610-442b-8f07-50d4c6861a67.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5bc331342acd34e0ad_images_image-7f0dd030-5342-4ea2-ab7d-3d4f24efa126.png

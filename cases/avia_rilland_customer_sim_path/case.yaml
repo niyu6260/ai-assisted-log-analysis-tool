@@ -1,0 +1,74 @@
+id: avia_rilland_customer_sim_path
+title: IDC480E customer operation backend unavailable through customer router
+detector: fognode_operation_path_failure
+input: 'C:\failure case logs\SIM card issue.zip'
+scope: non_charging_incident
+
+incident:
+  start: '2026-09-07T06:01:00Z'
+  end: '2026-09-07T06:12:30Z'
+
+source_selection:
+  serial_number: A2551504832
+  related_serial_numbers:
+    - A2551333800
+    - A2551333796
+  modules: []
+  include_files:
+    - VPowerCabinetFogNode.log
+    - syslog.log
+  include_rotated: false
+  utc_offset_hours_by_file:
+    syslog.log: 8
+
+ground_truth:
+  symptom: >
+    At Avia Rilland, the IDC480E briefly reaches the customer operation backend
+    after a reboot, then loses operation-backend communication through the
+    external router that contains the customer's operation SIM.
+  root_cause: >
+    FogNode starts normally and initially completes an Operation WebSocket
+    handshake, Accepted BootNotification, and Heartbeat response. At 06:08 the
+    Operation Heartbeat stops receiving replies while Maintenance remains
+    connected. The WebSocket closes with code 1006 after the 180-second Pong
+    timeout, and subsequent connection attempts to connect.longship.io:80 time
+    out. The fault is therefore concentrated in the customer SIM/APN or carrier
+    path to the Operation destination/port, customer source-IP policy, or the
+    Longship endpoint. It is not a FogNode, URL-format, DNS, general Internet, or
+    physical SIM-card failure.
+  confidence: medium
+  confirmation_status: probable
+  trigger_hypothesis: >
+    Switching traffic onto the customer SIM exposes destination/port-specific
+    blocking between that APN/carrier egress and connect.longship.io:80.
+  missing_proof:
+    - Packet capture showing whether SYN, TLS/WebSocket handshake, or established-session traffic fails.
+    - Customer SIM ICCID, APN, carrier registration, NAT/public source IP, and subscription status.
+    - Customer backend and firewall/allowlist logs for the charger source IP.
+    - Controlled A/B swap between the customer SIM and a known-good SIM/router.
+  customer_context_needed:
+    - Customer backend URL and port expected for this charger.
+    - Whether the backend uses source-IP allowlisting or a private APN/VPN.
+    - Whether other chargers on the same customer SIM subscription fail similarly.
+
+expected:
+  findings:
+    - fognode_and_operation_initial_connection_confirmed
+    - operation_pong_timeout_and_reconnect_failure_confirmed
+    - customer_sim_to_operation_port_path_probable
+  forbidden_findings:
+    - network_connectivity_failure
+    - maintenance_backend_prolonged_disconnection_confirmed
+    - eth1_network_manager_conflict_probable
+
+metadata:
+  charger_model: 480E
+  site: Avia Rilland
+  cabinet_serial_number: A2551504832
+  terminal_serial_numbers:
+    - A2551333800
+    - A2551333796
+  analyst_note: >
+    Vnetwork.log belongs to the maintenance SIM and is intentionally excluded.
+    Ping interval 180 seconds is failure-detection latency, not the failure cause.
+    The router syslog uses UTC+8 while the charger logs use UTC.

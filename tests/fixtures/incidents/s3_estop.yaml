@@ -1,0 +1,25 @@
+id: s3_ev_estop_session_end
+title: S3 vehicle emergency stop fixture
+detector: ev_estop_at_max_current
+input: s3_estop
+scope: charging_session
+incident:
+  start: '2026-04-14T16:31:50Z'
+  end: '2026-04-14T16:32:35Z'
+source_selection:
+  serial_number: A2492120316
+  modules: [CCU_Ethernet1, MainProcess, Fault_State1, charging1, ocpp]
+  include_rotated: true
+ground_truth:
+  symptom: Session ended with S3.
+  root_cause: S3 confirms EV_E_Stop, while its underlying trigger is unknown.
+  confidence: high
+  confirmation_status: confirmed
+  trigger_hypothesis: Current fluctuation near the EV maximum might have triggered the stop.
+  missing_proof: [EV-side stop reason]
+  customer_context_needed: [EV model, EV firmware]
+expected:
+  findings:
+    - s3_vehicle_emergency_stop
+    - ev_estop_at_max_current_possible_fluctuation
+  forbidden_findings: [eth1_network_manager_conflict_probable]

@@ -1,0 +1,66 @@
+id: ems300cp_low_charging_power
+title: IDC480E low charging current while connected to EMS300CP
+detector: ems_low_power_taper
+input: 'C:\failure case logs\low charging power issue.zip'
+scope: charging_session
+
+incident:
+  start: '2026-08-06T06:48:00Z'
+  end: '2026-08-06T06:55:59Z'
+
+source_selection:
+  serial_number: A2542220990
+  modules:
+    - CCU_Ethernet2
+  include_files:
+    - VCentralDistributor_0.log
+  include_rotated: false
+
+ground_truth:
+  symptom: >
+    Connector 2 charging power falls to a few kilowatts and approximately
+    1-3 A while the IDC480E is managed by EMS300CP.
+  root_cause: >
+    The EV explicitly tapers its CurrentDemand as SoC rises through approximately
+    78-82%. EMS300CP also reduces its gun allocation, but near the lowest-current
+    point its available power remains above the EV request. The EV/BMS request is
+    therefore the immediate binding limit; the EMS strategy's earlier influence
+    cannot be determined without its input-policy telemetry.
+  confidence: medium
+  confirmation_status: probable
+  trigger_hypothesis: >
+    The vehicle BMS follows a high-SoC charging taper. EMS300CP may then track or
+    redistribute the reduced demand rather than initiating the reduction.
+  missing_proof:
+    - EMS300CP site limit, grid limit, cabinet availability, and allocation inputs over time.
+    - Explicit applied connector limit after all EMS and charger constraints are combined.
+    - EV model, configured charge target, and expected BMS taper curve.
+    - A controlled comparison with EMS disabled or a fixed high connector allocation.
+  customer_context_needed:
+    - Customer EMS limiting strategy and site/grid power constraints.
+    - EV-side charge limit and reason for tapering near 78-82% SoC.
+    - Whether other EVs taper similarly on this connector under the same EMS state.
+
+expected:
+  findings:
+    - ev_high_soc_current_taper_confirmed
+    - ems_low_allocation_not_primary_limiter_probable
+  forbidden_findings:
+    - charger_internal_power_limit_confirmed
+    - ems_primary_root_cause_confirmed
+    - power_module_failure
+
+metadata:
+  charger_model: 480E
+  terminal_serial_number: A2542220990
+  connector_id: 2
+  ems: EMS300CP
+  customer_timezone: UTC+2
+  taper_period_local: 2026-08-06 08:49-08:52
+  taper_period_utc: 2026-08-06 06:49-06:52
+  attachments:
+    - 'C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-5e6a5ad6-ffad-42d2-b30f-6e327e0c7506.png'
+    - 'C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-76e2c0b8-92c4-4e90-a70d-4b46e384007c.png'
+    - 'C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-485fb982-0452-406e-a2bd-bee8c0b91915.png'
+    - 'C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-2c97d38f-6260-4716-89ad-296906c6fc71.png'
+    - 'C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-e9ceb067-f8c1-49c9-8a68-b0a42f87f27f.png'

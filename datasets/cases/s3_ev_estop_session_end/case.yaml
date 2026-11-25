@@ -1,0 +1,66 @@
+schema_version: '1.0'
+case_id: s3_ev_estop_session_end
+title: S3 vehicle emergency stop at session end
+source:
+  archive_uri: C:\failure case logs\S3errorforsessionend.zip
+  raw_access: restricted
+  anonymization_status: not_reviewed
+  legacy_case_path: cases/s3_ev_estop_session_end/case.yaml
+charger:
+  model: unknown
+  serial_numbers:
+  - A2492120316
+  firmware_versions: []
+incident:
+  start: '2026-04-14T16:31:50Z'
+  end: '2026-04-14T16:32:35Z'
+  timezone: UTC
+  customer_symptom: Session ended with OCPP vendorErrorCode S3 and Local StopTransaction.
+labels:
+  domains:
+  - iso15118
+  - power
+  root_cause_category: vehicle_request_or_bms_behavior
+  root_cause_summary: 'S3 identifies EV_E_Stop: the vehicle initiated an emergency stop. The available
+    logs do not establish the vehicle-internal reason that triggered EV_E_Stop.
+
+    '
+  conclusion_status: confirmed
+  confidence: high
+  trigger_hypothesis: 'Immediately before the C/D-to-B transition, EVTargetCurrent was 295.5 A and EVMaximumCurrentLimit
+    was also 295.5 A. A current-output fluctuation near that limit might have triggered the EV stop, but
+    this remains unproven.
+
+    '
+  expected_findings:
+  - s3_vehicle_emergency_stop
+  - ev_estop_at_max_current_possible_fluctuation
+  forbidden_findings:
+  - eth1_network_manager_conflict_probable
+  - normal_ev_stop
+  evidence: []
+  missing_evidence:
+  - High-resolution PCU output-current waveform around 16:32:22–16:32:25 UTC.
+  - EV-side diagnostic reason for asserting emergency stop.
+  recommended_actions: []
+governance:
+  label_status: reviewed
+  label_version: '1.0'
+  split: unassigned
+  reviewers:
+  - legacy-expert
+  group_keys:
+  - archive:s3errorforsessionend.zip
+  imported_at: '2026-11-25T09:37:10.107044+00:00'
+legacy:
+  detector: ev_estop_at_max_current
+  customer_context_needed:
+  - EV make and model.
+  - EV firmware version.
+  metadata:
+    attachments:
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-d78918cc-a931-420c-9edc-deaba988cd75.png
+    analyst_note: 'Obtain the EV model and consider an EV firmware update if supported by the vehicle
+      manufacturer.
+
+      '

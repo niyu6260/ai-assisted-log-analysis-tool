@@ -1,0 +1,24 @@
+id: solaredge_4g_eth1_manager_conflict
+title: SolarEdge test incident
+detector: network_manager_ownership_conflict
+input: solaredge_conflict
+scope: incident_window
+incident:
+  start: '2026-08-10T09:50:40Z'
+  end: '2026-08-10T16:39:30Z'
+source_selection:
+  serial_number: A24C0215369
+  modules: [router_network, network, MainProcess, ocpp]
+  include_rotated: true
+  include_files: [dlm-network.log]
+ground_truth:
+  symptom: Backend disconnected
+  root_cause: Network mode transitions and competing managers are a plausible cause.
+  confidence: medium
+  confirmation_status: probable
+  missing_proof:
+    - Direct simultaneous interface writes.
+    - Confirmed process exits after ready-to-kill messages.
+expected:
+  findings: [eth1_network_manager_conflict_probable]
+  forbidden_findings: [vehicle_emergency_stop]

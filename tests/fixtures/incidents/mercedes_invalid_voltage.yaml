@@ -1,0 +1,33 @@
+id: fixture_mercedes_invalid_target_voltage
+title: Fixture Mercedes invalid target voltage
+detector: ev_invalid_target_voltage
+input: mercedes_invalid_voltage
+scope: charging_session
+
+incident:
+  start: '2026-05-11T06:40:00Z'
+  end: '2026-05-11T07:00:00Z'
+
+source_selection:
+  serial_number: A2551405827
+  related_serial_numbers:
+    - A2551405831
+    - A2541117859
+  modules:
+    - CCU_Ethernet1
+  include_rotated: false
+
+ground_truth:
+  symptom: Mercedes Truck cannot charge on IDC480E.
+  root_cause: Vehicle software sent a below-minimum target voltage.
+  confidence: high
+  confirmation_status: confirmed
+  missing_proof:
+    - Before/after EV software versions.
+
+expected:
+  findings:
+    - ev_invalid_target_voltage_precharge_stop_confirmed
+    - mercedes_vehicle_software_root_cause_confirmed
+  forbidden_findings:
+    - power_module_fault

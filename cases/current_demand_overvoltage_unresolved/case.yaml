@@ -1,0 +1,65 @@
+id: current_demand_overvoltage_unresolved
+title: IDC480EC Connector 2 CurrentDemand overvoltage remains unresolved
+detector: current_demand_overvoltage_unresolved
+input: 'C:\failure case logs\Current_Demand_Fault issue.zip'
+scope: charging_session
+
+incident:
+  start: '2026-07-28T04:55:00Z'
+  end: '2026-07-28T05:09:45Z'
+
+source_selection:
+  serial_number: A2522801853
+  modules:
+    - CCU_Ethernet2
+    - Fault_State2
+    - ocpp
+  include_rotated: false
+
+ground_truth:
+  symptom: >
+    Connector 2 stopped an active charging session with Current_Demand_Fault,
+    C40/battery-overvoltage reporting, and a 25.03 V output-to-EV-request
+    difference. Unplugging and reconnecting started another successful session.
+  root_cause: >
+    No root cause is confirmed. The CCU protection input implies approximately
+    433 V against a 408 V EV target/maximum, but there is no synchronized PCU/PM
+    sample proving that physical voltage. A true module-switching overshoot and
+    a stale or erroneous CCU voltage sample remain competing hypotheses.
+  confidence: low
+  confirmation_status: inconclusive
+  trigger_hypothesis: >
+    PCU module addition/removal may have produced a short voltage transient, or
+    CCU voltage acquisition/filtering may have produced one invalid 25 V
+    difference sample.
+  missing_proof:
+    - The referenced pcu_20260728050417.log segment covering the exact fault.
+    - Synchronized CCU ADC, PCU bus, PM output, and EV-side voltage at millisecond resolution.
+    - Power-module on/off count and switching commands around 05:04:15 UTC.
+    - Voltage-sample age, filtering, source channel, and raw ADC value used by protection.
+    - Reproduction showing whether the event follows a module transition.
+  customer_context_needed:
+    - EV model, battery voltage architecture, and firmware version.
+    - Whether the customer performed a full unplug/replug and fresh authorization.
+    - Frequency and affected terminals for the other similar cases.
+
+expected:
+  findings:
+    - current_demand_output_overvoltage_protection_confirmed
+    - current_demand_true_overvoltage_vs_sample_unresolved
+    - replug_started_new_successful_transaction_confirmed
+  forbidden_findings:
+    - pcu_module_switch_overvoltage_confirmed
+    - vehicle_battery_overvoltage_confirmed
+    - continue_same_transaction_after_replug
+
+metadata:
+  charger_model: 480EC
+  terminal_serial_number: A2522801853
+  local_connector_id: 2
+  external_connector_id: 4
+  voltage_difference_threshold_V: 25
+  expected_ev_target_voltage_V: 408
+  missing_pcu_log: pcu_20260728050417.log
+  attachments:
+    - 'C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-1350a50b-d1da-49a8-9df1-31a02c18f4e6.png'

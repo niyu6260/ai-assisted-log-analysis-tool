@@ -1,0 +1,82 @@
+schema_version: '1.0'
+case_id: tesla_precharge_residual_voltage
+title: IDC480EC Tesla low-voltage PreCharge fault after CableCheck
+source:
+  archive_uri: C:\failure case logs\Precharge_Fault issue.zip
+  raw_access: restricted
+  anonymization_status: not_reviewed
+  legacy_case_path: cases/tesla_precharge_residual_voltage/case.yaml
+charger:
+  model: 480EC
+  serial_numbers:
+  - A2611402819
+  firmware_versions: []
+incident:
+  start: '2026-07-20T15:43:50Z'
+  end: '2026-07-20T15:49:45Z'
+  timezone: UTC
+  customer_symptom: 'A Tesla requesting approximately 262-263 V repeatedly stops during PreCharge on both
+    connectors with Precharge_Fault.
+
+    '
+labels:
+  domains:
+  - iso15118
+  - power
+  root_cause_category: protocol_state_machine
+  root_cause_summary: 'CableCheck completes at a higher voltage and the charger commands a voltage drop,
+    but PreCharge begins before output voltage has settled close enough to the Tesla target. The remaining
+    output-to-request difference exceeds the 12 V safety threshold and triggers an EVSE emergency stop.
+
+    '
+  conclusion_status: probable
+  confidence: medium
+  trigger_hypothesis: 'The discharge path and relay/contactor transition do not have enough time, or are
+    not closed-loop verified, before the low-voltage PreCharge request is evaluated.
+
+    '
+  expected_findings:
+  - precharge_output_over_ev_voltage_protection_confirmed
+  - post_cablecheck_residual_voltage_timing_probable
+  forbidden_findings:
+  - disable_precharge_overvoltage_protection
+  - vehicle_invalid_target_voltage
+  - cablecheck_isolation_failure
+  evidence: []
+  missing_evidence:
+  - High-rate DC bus and EV-side voltage from CableCheck completion through PreCharge.
+  - Relay/contactor command and auxiliary-contact feedback at sub-second resolution.
+  - Discharge resistor current and voltage-decay curve.
+  - Confirmation of which voltage sensor supplies the 18-39 V difference calculation.
+  - Successful post-fix trace on both connectors with the protection still enabled.
+  recommended_actions: []
+governance:
+  label_status: reviewed
+  label_version: '1.0'
+  split: unassigned
+  reviewers:
+  - legacy-expert
+  group_keys:
+  - archive:precharge_fault issue.zip
+  imported_at: '2026-11-25T09:37:10.112991+00:00'
+legacy:
+  detector: precharge_residual_voltage
+  customer_context_needed:
+  - Tesla model, battery variant, and vehicle firmware version.
+  - Whether the same vehicle succeeds on chargers with a longer post-CableCheck delay.
+  metadata:
+    charger_model: 480EC
+    terminal_serial_number: A2611402819
+    vehicle: Tesla
+    requested_voltage_range_V:
+    - 262
+    - 263
+    voltage_difference_threshold_V: 12
+    reported_stop_reasons:
+      connector_1:
+      - '2026-07-20T15:44:16Z'
+      - '2026-07-20T15:46:33Z'
+      - '2026-07-20T15:48:11Z'
+      connector_2:
+      - '2026-07-20T15:49:23Z'
+      - '2026-07-20T15:49:30Z'

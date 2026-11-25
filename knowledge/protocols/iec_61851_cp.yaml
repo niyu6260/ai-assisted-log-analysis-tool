@@ -1,0 +1,285 @@
+schema_version: 1
+knowledge_id: iec_61851_dc_cp_guidance
+title: IEC 61851 control-pilot states and DC charging alignment
+status: partial
+source_basis:
+  type: internal_training_material
+  raw_material_in_repository: false
+  referenced_standards:
+    - IEC 61851-1 Annex A
+    - IEC 61851-23 Annex CC
+    - DIN SPEC 70121
+    - ISO 15118-2
+    - ISO 15118-3
+  limitations:
+    - This file captures diagnostic guidance visible in the supplied slides.
+    - It is not a substitute for the licensed normative standards.
+    - Voltage tolerances, debounce periods, transition deadlines, and conformance exceptions remain unspecified.
+
+cp_signal:
+  conductor: Control Pilot to Protective Earth
+  pwm:
+    nominal_frequency_Hz: 1000
+    startup_duty_cycle_percent: 5
+    diagnostic_note: PWM presence and positive voltage level are separate state dimensions.
+  circuit_roles:
+    evse:
+      - PWM source
+      - CP voltage measurement
+      - Series resistance and coupling circuit
+    ev:
+      - Diode and resistor network
+      - S2 switching changes the observed CP level
+
+states:
+  A:
+    nominal_positive_voltage_V: 12
+    meaning: No vehicle connected
+    category: normal
+    variants:
+      A1:
+        pwm: false
+        meaning: Idle without PWM
+      A2:
+        pwm: true
+        meaning: PWM active while CP remains State A
+  B:
+    nominal_positive_voltage_V: 9
+    meaning: Vehicle connected, not ready for energy transfer
+    category: normal
+    variants:
+      B1:
+        pwm: false
+        meaning: Connected without PWM
+      B2:
+        pwm: true
+        meaning: Connected with PWM and high-level communication enabled
+  C:
+    nominal_positive_voltage_V: 6
+    meaning: Vehicle ready; energy-transfer path may be enabled by the charging sequence
+    category: normal
+    variants:
+      C1:
+        pwm: false
+        meaning: Ready indication without PWM
+      C2:
+        pwm: true
+        meaning: Ready indication with PWM
+  D:
+    nominal_positive_voltage_V: 3
+    meaning: Vehicle ready with ventilation requirement
+    category: normal
+    variants: {}
+    implementation_note: The supplied DC charging state diagram marks State D as unused.
+  E:
+    nominal_positive_voltage_V: 0
+    meaning: Passive error state
+    category: fault
+    variants: {}
+  F:
+    nominal_positive_voltage_V: -12
+    meaning: Active error state
+    category: fault
+    variants: {}
+
+transitions:
+  - id: plug_without_pwm
+    from: A1
+    to: B1
+    trigger: Vehicle connector inserted and EV resistor network detected
+    direction: forward
+  - id: unplug_without_pwm
+    from: B1
+    to: A1
+    trigger: Vehicle connector removed
+    direction: recovery
+  - id: start_pwm_idle
+    from: A1
+    to: A2
+    trigger: EVSE starts PWM before or independently of plug detection
+    direction: forward
+  - id: stop_pwm_idle
+    from: A2
+    to: A1
+    trigger: EVSE stops PWM or charging control is initialized
+    direction: recovery
+  - id: plug_with_pwm
+    from: A2
+    to: B2
+    trigger: Vehicle connector inserted while PWM is active
+    direction: forward
+  - id: unplug_with_pwm
+    from: B2
+    to: A2
+    trigger: Vehicle connector removed while PWM is active
+    direction: recovery
+  - id: begin_high_level_communication
+    from: B1
+    to: B2
+    trigger: EVSE starts PWM and charging communication
+    direction: forward
+  - id: stop_high_level_communication
+    from: B2
+    to: B1
+    trigger: EVSE stops PWM or software reinitializes charging
+    direction: recovery
+  - id: ev_ready_without_pwm
+    from: B1
+    to: C1
+    trigger: EV closes S2
+    direction: forward
+  - id: ev_not_ready_without_pwm
+    from: C1
+    to: B1
+    trigger: EV opens S2 or charging stops
+    direction: recovery
+  - id: ev_ready_with_pwm
+    from: B2
+    to: C2
+    trigger: EV closes S2 and charging enters power-output phase
+    direction: forward
+  - id: ev_not_ready_with_pwm
+    from: C2
+    to: B2
+    trigger: EV opens S2 or EV/EVSE stops charging
+    direction: recovery
+  - id: charging_loop
+    from: C2
+    to: C2
+    trigger: CurrentDemand energy-transfer loop continues
+    direction: steady
+  - id: cp_open_during_charge
+    from: C2
+    to: A2
+    trigger: CP path opens while PWM remains generated
+    direction: fault
+
+high_level_communication:
+  physical_and_link_sequence:
+    - order: 1
+      stage: cp_entry
+      expected_cp: B2
+      evidence:
+        - State B with PWM
+    - order: 2
+      stage: slac
+      evidence:
+        - Key exchange
+        - Signal Level Attenuation Characterization
+        - PLC signal-strength matching
+        - CP physical-connection check
+    - order: 3
+      stage: logical_network
+      evidence:
+        - HomePlug AV logical network established
+    - order: 4
+      stage: service_discovery
+      transport: UDP
+      evidence:
+        - V2GTP
+        - Transport security selection
+        - IPv6 information exchange
+    - order: 5
+      stage: charging_session
+      transport: TCP over IPv6
+      evidence:
+        - Three-way TCP handshake
+        - EXI-encoded DIN SPEC 70121 or ISO 15118 messages
+
+message_phase_alignment:
+  state_B_PWM:
+    - SupportedAppProtocol
+    - SessionSetup
+    - ServiceDiscovery
+    - ServicePaymentSelection
+    - ContractAuthentication
+    - ChargeParameterDiscovery
+    - PowerDelivery
+  state_C_or_D_PWM:
+    - CableCheck
+    - PreCharge
+    - CurrentDemand
+  return_to_state_B_PWM:
+    - WeldingCheck
+  state_B_or_B_PWM:
+    - SessionStop
+  diagnostic_note: Message and CP logs can be asynchronous; use ordering windows rather than exact timestamp equality.
+
+dc_start_sequence:
+  reference: IEC 61851-23 Annex CC
+  ordered_phases:
+    - connector insertion changes CP from A to B
+    - high-level communication starts and charging parameters are exchanged
+    - connector locking is confirmed
+    - EV limits and DC supply limits are exchanged
+    - cable and insulation check is requested and completed
+    - EVSE performs insulation monitoring and reports valid status
+    - precharge adapts DC output voltage toward the EV requested voltage
+    - EV closes its disconnecting device when voltage conditions are acceptable
+    - PowerDelivery enables the power path and CP enters C or D
+    - CurrentDemand controls energy transfer
+
+dc_stop_sequence:
+  reference: IEC 61851-23 Annex CC
+  ordered_phases:
+    - EV reduces requested current to complete energy transfer
+    - EVSE follows the decreasing request and reduces output current
+    - EV requests PowerDelivery stop
+    - EV may open its disconnecting device after current is sufficiently low
+    - EVSE disables output, opens contactors, and discharges internal output capacitance
+    - CP changes from C or D back to B
+    - connector is unlocked when permitted
+    - SessionStop terminates high-level communication
+    - physical disconnect changes CP from B to A
+  diagnostic_note: The slide cites 1 A and 2 s conditions, but exact normative conditions must be verified before implementing hard thresholds.
+
+diagnostic_rules:
+  - id: cp_e_is_signal_state_not_root_cause
+    observation: CP State E is present.
+    conclusion: The CP path is observed near 0 V and is in a passive error state.
+    prohibited_conclusion: Do not infer emergency-button activation without independent emergency-input evidence.
+    corroborating_evidence:
+      - CP-to-PE scope or voltage measurement
+      - CCU sampled CP voltage
+      - Harness, connector, moisture, and PE inspection
+
+  - id: cp_state_requires_pwm_dimension
+    observation: A, B, or C is reported without PWM information.
+    conclusion: The base CP voltage state is known, but the communication substate is incomplete.
+    prohibited_conclusion: Do not distinguish A1/A2, B1/B2, or C1/C2 without PWM evidence.
+    corroborating_evidence:
+      - PWM present/absent log
+      - Duty-cycle measurement
+
+  - id: state_b_can_be_normal_negotiation
+    observation: CP remains State B while early high-level messages are exchanged.
+    conclusion: This can be normal before PowerDelivery and readiness transition.
+    prohibited_conclusion: Do not diagnose a charging failure from State B alone.
+    corroborating_evidence:
+      - SupportedAppProtocol through ChargeParameterDiscovery progression
+      - Timeout or explicit protocol error if progression stops
+
+  - id: precharge_requires_cross_layer_alignment
+    observation: CableCheck completes and PreCharge begins.
+    conclusion: Compare EV target voltage, EVSE output command, measured output, CP state, and contactor timing.
+    prohibited_conclusion: Do not attribute failure to EV or charger from one voltage sample alone.
+    corroborating_evidence:
+      - ISO 15118 or DIN request/response pair
+      - CCU command and sampled voltage
+      - PCU or meter telemetry
+
+  - id: normal_stop_is_ordered_cross_layer_process
+    observation: Energy transfer ends.
+    conclusion: Correlate current ramp-down, PowerDelivery stop, CP return, discharge, WeldingCheck, SessionStop, and unplug.
+    prohibited_conclusion: Do not treat the first stop-related line as the sole root cause.
+    corroborating_evidence:
+      - EV request current and EVSE actual current
+      - PowerDelivery and SessionStop messages
+      - CP transitions and connector lock state
+
+open_questions:
+  - Normative voltage ranges and sampling/debounce rules for each CP state.
+  - Exact timing limits for CP, SLAC, SDP, TCP, and every charging message.
+  - Charger software mapping from sampled CP values to internal error IDs and OCPP vendor codes.
+  - Whether State D is disabled across every supported charger model and release.
+  - TLS and Plug-and-Charge support by charger model and software version.

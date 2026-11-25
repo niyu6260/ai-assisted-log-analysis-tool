@@ -1,0 +1,59 @@
+id: mercedes_truck_invalid_target_voltage
+title: Mercedes Truck invalid target voltage on IDC480E
+detector: ev_invalid_target_voltage
+input: 'C:\failure case logs\Mercedes Truck charging issue.zip'
+scope: charging_session
+
+incident:
+  start: '2026-05-11T06:40:00Z'
+  end: '2026-05-11T11:23:30Z'
+
+source_selection:
+  serial_number: A2551405827
+  related_serial_numbers:
+    - A2551405831
+    - A2541117859
+  modules:
+    - CCU_Ethernet1
+    - CCU_Ethernet2
+  include_rotated: false
+
+ground_truth:
+  symptom: >
+    A Mercedes Truck could not charge on IDC480E A2551405827 after a controller
+    update, although it could charge on an Alpitronic charger.
+  root_cause: >
+    Vehicle software generated an invalid target-voltage request below the IDC480E
+    minimum during precharge. After the vehicle's internal software was updated, it
+    charged normally on the same charger.
+  confidence: high
+  confirmation_status: confirmed
+  trigger_hypothesis: >
+    The earlier vehicle software and IDC480E differed in ISO 15118 target-voltage
+    validation or interoperability behavior. The charger rejected the below-minimum
+    request and executed its voltage-drop safety response.
+  missing_proof:
+    - Exact Mercedes Truck software versions before and after the update.
+    - Raw ISO 15118 target-voltage value and EVSE minimum limit from a packet capture.
+    - Successful post-update CCU/ISO 15118 trace for field-by-field comparison.
+  customer_context_needed:
+    - Mercedes Truck model and VIN-independent platform/ECU information.
+    - Charger controller version involved in the initial reported regression.
+
+expected:
+  findings:
+    - ev_invalid_target_voltage_precharge_stop_confirmed
+    - mercedes_vehicle_software_root_cause_confirmed
+  forbidden_findings:
+    - power_module_fault
+    - s3_vehicle_emergency_stop
+    - ev_estop_at_max_current_possible_fluctuation
+
+metadata:
+  charger_model: 480E
+  charger_serial_number: A2551405827
+  post_update_result: Vehicle charged normally after its internal software update.
+  attachments:
+    - 'C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-62be1d59-7fd9-4316-9557-04b21d334336.png'
+    - 'C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-5899edd7-7610-442b-8f07-50d4c6861a67.png'
+    - 'C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5bc331342acd34e0ad_images_image-7f0dd030-5342-4ea2-ab7d-3d4f24efa126.png'

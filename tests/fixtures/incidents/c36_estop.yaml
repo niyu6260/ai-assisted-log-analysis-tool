@@ -1,0 +1,33 @@
+id: fixture_c36_estop_independence
+title: Fixture C36 independent from emergency button
+detector: c36_cp_state_e_lifecycle
+input: c36_lifecycle
+scope: non_charging_incident
+
+incident:
+  start: '2026-08-26T09:05:50Z'
+  end: '2026-08-26T09:08:00Z'
+
+source_selection:
+  serial_number: A25C0407837
+  modules:
+    - CCU_Ethernet1
+    - MainProcess
+  include_rotated: true
+
+ground_truth:
+  symptom: C36 remains after C2 and C37 clear.
+  root_cause: C36 is non-forced CP State E and predates emergency input.
+  confidence: high
+  confirmation_status: confirmed
+
+expected:
+  findings:
+    - c36_cp_state_e_mapping_confirmed
+    - c36_preceded_estop_independent_confirmed
+    - c36_persisted_after_estop_release_confirmed
+  forbidden_findings:
+    - c36_caused_by_emergency_button
+
+metadata:
+  analysis_mode: estop_independence

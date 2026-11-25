@@ -1,0 +1,32 @@
+id: fixture_plug_and_play_idtag_rejected
+title: Fixture Plug & Play ID tag rejection
+detector: plug_and_play_idtag_rejected
+input: plug_and_play_idtag
+scope: charging_session
+
+incident:
+  start: '2026-07-10T10:59:20Z'
+  end: '2026-07-10T10:59:40Z'
+
+source_selection:
+  serial_number: A2581906891
+  modules:
+    - ocpp
+  include_rotated: false
+
+ground_truth:
+  symptom: Plug & Play transaction stops immediately without energy.
+  root_cause: Customer backend rejected the charger ID tag.
+  confidence: high
+  confirmation_status: confirmed
+  missing_proof:
+    - Successful retest after backend registration.
+
+expected:
+  findings:
+    - plug_and_play_charger_idtag_rejected_confirmed
+  forbidden_findings:
+    - charging_firmware_failure
+
+metadata:
+  plug_and_play_id_tag: A2581906891

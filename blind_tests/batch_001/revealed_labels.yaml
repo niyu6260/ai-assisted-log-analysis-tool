@@ -1,0 +1,71 @@
+batch_id: blind_batch_001
+reveal_status: partial
+revealed_at: '2026-09-15T08:24:00Z'
+
+cases:
+  blind-001:
+    status: withheld
+  blind-002:
+    status: withheld
+  blind-003:
+    status: withheld
+
+  blind-004:
+    status: revealed
+    source: user_expert_analysis
+    confirmation_status: confirmed
+    affected_domains:
+      - ocpp
+      - system
+    root_cause_category: operation_reconnect_boot_state_not_reestablished
+    key_timeline:
+      - '07:21:01 Operation EU WebSocket connected.'
+      - '07:21:02 BootNotification sent.'
+      - '07:21:25 EU returned BootNotification Accepted.'
+      - '07:23:40 Operation connection closed remotely with code 1006.'
+      - '07:23:48 WebSocket reconnected, but no new BootNotification was sent.'
+      - '12:50–12:58 repeated card FD18845A attempts were locally ignored.'
+    expected_findings:
+      - operation_reconnect_without_bootnotification
+      - authorize_blocked_by_local_boot_guard
+      - empty_authorize_response_causes_internal_error
+    root_cause: >
+      After a remote code-1006 close, FogNode re-established the Operation
+      WebSocket but did not restart the OCPP BootNotification lifecycle. The
+      transport state remained Connected while Boot Notification was not
+      accepted for the new connection. Authorize requests were therefore
+      ignored locally, an empty AuthorizeConf caused NullPointerException and
+      InternalError, and the terminal surfaced NoEnable/S20. The card requests
+      did not reach normal EU-platform authorization.
+
+  blind-005:
+    status: revealed
+    source: user_expert_analysis
+    confirmation_status: confirmed
+    affected_domains:
+      - ocpp
+      - system
+    root_cause_categories:
+      - backend_vid_authorization_policy
+      - terminal_powercabinet_websocket_instability
+    key_timeline:
+      - '2026-08-31 19:50:47 VID EC9468001449 returned Blocked.'
+      - '2026-08-31 19:51:30 the same VID again returned Blocked.'
+      - '2026-09-01 18:41:23 the same VID returned Accepted.'
+      - '2026-09-01 18:41:35 StartTransaction 310 returned Accepted.'
+      - '2026-08-31 19:27:55 internal Terminal-to-Power-Cabinet WebSocket closed with code 1007 due to invalid UTF-8.'
+      - 'Unavailable/Available flaps followed internal WebSocket and Heartbeat failures.'
+    expected_findings:
+      - operation_backend_explicitly_blocked_vid
+      - later_acceptance_proves_vid_and_autocharge_path
+      - internal_terminal_websocket_causes_unavailable_flaps
+    root_cause: >
+      AutoCharge correctly generated and sent the VID, AuthorizationCache was
+      disabled, and EVO explicitly returned Blocked on August 31. The same VID
+      was accepted on September 1 and successfully started transaction 310, so
+      VID format and charger authorization logic were healthy. The earlier
+      Blocked result came from EVO authorization data, policy, cache, or binding
+      state. Separately, EVO Unavailable status was caused by unstable local
+      Terminal-to-Power-Cabinet WebSocket communication, including code 1007
+      invalid-UTF-8 closes and Heartbeat timeouts; EMS did not cause either
+      authorization result.

@@ -1,0 +1,73 @@
+schema_version: '1.0'
+case_id: s20_frame_communication_timeout
+title: Connector 1 S20 frame timeout and stale state
+source:
+  archive_uri: C:\failure case logs\Frame_Communication_Timeout.zip
+  raw_access: restricted
+  anonymization_status: not_reviewed
+  legacy_case_path: cases/s20_frame_communication_timeout/case.yaml
+charger:
+  model: unknown
+  serial_numbers:
+  - A24B0200960
+  firmware_versions: []
+incident:
+  start: '2026-04-14T15:16:30Z'
+  end: '2026-04-16T07:28:10Z'
+  timezone: UTC
+  customer_symptom: 'Connector 1 reports S20 Frame_Communication_Timeout. The backend can show errorCode=NoError
+    while S20 remains present, and the LED strip was reported red.
+
+    '
+labels:
+  domains:
+  - system
+  - ocpp
+  root_cause_category: firmware_regression
+  root_cause_summary: 'The logs support a probable stop-code lifecycle or state-synchronization regression:
+    S20 is first processed after the connector enters a Finishing state, and later S20 is reported together
+    with NoError while the connector is Available or Unavailable. The underlying ISO 15118 timeout trigger
+    is not established.
+
+    '
+  conclusion_status: probable
+  confidence: medium
+  trigger_hypothesis: 'S20 should be latched when frame communication times out before unplugging and
+    cleared when the connector returns to unplugged/idle. A changed ordering between session state, CCU
+    stop-code callback, OCPP status, and LED state may leave a stale indication.
+
+    '
+  expected_findings:
+  - s20_frame_communication_timeout_observed
+  - s20_state_lifecycle_inconsistency_probable
+  forbidden_findings:
+  - s3_vehicle_emergency_stop
+  - eth1_network_manager_conflict_probable
+  - normal_ev_stop
+  evidence: []
+  missing_evidence:
+  - Exact CCU firmware versions before and after the suspected regression.
+  - Direct CP/unplug transition and ISO 15118 frame-timeout timer traces.
+  - LED controller input and state around the S20 set/clear sequence.
+  - A reproduced run proving S20 remains latched after unplugging.
+  recommended_actions: []
+governance:
+  label_status: reviewed
+  label_version: '1.0'
+  split: unassigned
+  reviewers:
+  - legacy-expert
+  group_keys:
+  - archive:frame_communication_timeout.zip
+  imported_at: '2026-11-25T09:37:10.101295+00:00'
+legacy:
+  detector: s20_state_lifecycle
+  customer_context_needed:
+  - Whether the red LED remained after reconnecting or rebooting.
+  - Exact reproduction steps and EV model.
+  metadata:
+    analyst_note: 'The April 14 logs contain a clear and a later successful charging state, so they do
+      not prove that S20 stayed permanently stuck. The inconsistent April 16 OCPP reports still justify
+      investigating stale state propagation.
+
+      '

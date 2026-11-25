@@ -1,0 +1,94 @@
+schema_version: '1.0'
+case_id: connector2_lem_http_service_hang
+title: IDC180E Connector 2 LEM remains pingable while HTTP service hangs
+source:
+  archive_uri: C:\failure case logs\Connector2 Fault issue.zip
+  raw_access: restricted
+  anonymization_status: not_reviewed
+  legacy_case_path: cases/connector2_lem_http_service_hang/case.yaml
+charger:
+  model: 180E
+  serial_numbers:
+  - A2491508085
+  firmware_versions: []
+incident:
+  start: '2026-06-24T09:20:00Z'
+  end: '2026-07-01T10:40:00Z'
+  timezone: UTC
+  customer_symptom: 'Connector 2 repeatedly reports DC-meter communication loss/data errors and can remain
+    unavailable until the IDC180E is fully power-cycled. Connector 1 continues operating normally.
+
+    '
+labels:
+  domains:
+  - network
+  - power
+  root_cause_category: process_or_service_failure
+  root_cause_summary: 'Connector 2''s LEM at 192.168.10.2 remained reachable by ICMP but stopped responding
+    to its HTTP status service. A full charger power cycle restored both v1/v2 status responses and cleared
+    the connector fault. This strongly indicates a recoverable hang in the LEM communication/status service.
+
+    '
+  conclusion_status: probable
+  confidence: medium
+  trigger_hypothesis: 'A LEM application, HTTP task, or internal communication module enters a persistent
+    stuck state that survives normal charger operation but clears when the meter receives a hardware reset
+    during a full power cycle.
+
+    '
+  expected_findings:
+  - connector2_meter_http_timeout_persistent_confirmed
+  - connector2_lem_http_service_hang_probable
+  forbidden_findings:
+  - connector2_internal_ethernet_path_fault_probable
+  - broken_ethernet_cable_confirmed
+  - external_wan_outage
+  - connector1_meter_failure
+  evidence: []
+  missing_evidence:
+  - LEM-internal task, watchdog, exception, and reset-reason logs from the fault period.
+  - Packet capture proving whether TCP port 80 connected but HTTP never responded.
+  - SN-prefixed MainProcess logs covering the 3 July power cycle and immediate recovery.
+  - Firmware release notes or a controlled firmware A/B test reproducing and fixing the hang.
+  recommended_actions: []
+governance:
+  label_status: reviewed
+  label_version: '1.0'
+  split: unassigned
+  reviewers:
+  - legacy-expert
+  group_keys:
+  - archive:connector2 fault issue.zip
+  - site:fines charging - burgas - masterhaus burgas
+  imported_at: '2026-11-25T09:37:10.069122+00:00'
+legacy:
+  detector: lem2_http_service_hang
+  customer_context_needed:
+  - Exact LEM application and sensor firmware versions during each recurrence.
+  - Whether only a full charger power cycle works or a targeted LEM reset also recovers it.
+  - Recurrence interval after the 3 July reset.
+  metadata:
+    site: Fines Charging - Burgas - MASTERHAUS Burgas
+    charger_model: 180E
+    charger_serial_number: A2491508085
+    connector_id: 2
+    lem_ip: 192.168.10.2
+    investigation_date: '2026-07-03'
+    field_tests:
+      fault_ping_passed: true
+      fault_http_failed: true
+      cable_continuity_passed: true
+      power_cycle_recovered_http: true
+      connector_fault_cleared_after_power_cycle: true
+    known_recurrences:
+    - '2026-05-28'
+    - '2026-06-20'
+    attachments:
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-fdf98802-c98e-4ca5-8a4e-a907f5d1739a.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-2dadcb77-59b9-4549-99ea-0ec3e7853802.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-79050c95-da2f-48f5-8ea7-867a1817dede.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-3d5e97b7-426e-4d01-aff6-edb1f662bed4.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-865571fc-b8e0-4f7a-a90b-1599f7f0634b.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-92dc524e-011d-4bd8-8344-05bc34e01727.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-941d0d46-c45b-4ba5-ad86-18b3f37e3a45.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-f72749b0-267a-4c48-a2de-889f19ef66e4.png

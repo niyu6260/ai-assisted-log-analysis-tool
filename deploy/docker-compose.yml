@@ -1,0 +1,78 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: charger_diag
+      POSTGRES_USER: charger
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U charger -d charger_diag"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    image: minio/minio:RELEASE.2024-10-29T16-01-48Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-charger}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-me-now}
+    volumes:
+      - minio-data:/data
+
+  minio-init:
+    image: minio/mc:RELEASE.2024-10-29T15-34-59Z
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000
+      ${MINIO_ROOT_USER:-charger} ${MINIO_ROOT_PASSWORD:-change-me-now}; do sleep 2; done;
+      mc mb --ignore-existing local/charger-logs;
+      "
+
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    environment: &app-env
+      CHARGER_DATABASE_URL: postgresql+psycopg://charger:${POSTGRES_PASSWORD:-change-me}@postgres:5432/charger_diag
+      CHARGER_OBJECT_STORE: s3
+      CHARGER_S3_ENDPOINT_URL: http://minio:9000
+      CHARGER_S3_BUCKET: charger-logs
+      CHARGER_S3_ACCESS_KEY: ${MINIO_ROOT_USER:-charger}
+      CHARGER_S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-change-me-now}
+      CHARGER_REQUIRE_AUTH: "true"
+      CHARGER_RETENTION_DAYS: ${CHARGER_RETENTION_DAYS:-90}
+      CHARGER_WORK_ROOT: /work
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080"
+    volumes:
+      - api-work:/work
+
+  worker:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    command: ["python", "-m", "charger_log_cloud.worker"]
+    environment: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    volumes:
+      - worker-work:/work
+
+volumes:
+  postgres-data:
+  minio-data:
+  api-work:
+  worker-work:

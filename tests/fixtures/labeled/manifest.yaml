@@ -1,0 +1,10 @@
+cases:
+  - id: cp_signal_fault
+    input: cp_signal_fault
+    expected_findings:
+      - cp_signal_fault
+
+  - id: network_tls_failure
+    input: network_tls_failure
+    expected_findings:
+      - network_connectivity_failure

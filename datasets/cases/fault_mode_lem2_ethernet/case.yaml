@@ -1,0 +1,74 @@
+schema_version: '1.0'
+case_id: fault_mode_lem2_ethernet
+title: IDC180E Connector 2 fault mode after LEM communication loss
+source:
+  archive_uri: C:\failure case logs\Fault Mode issue.zip
+  raw_access: restricted
+  anonymization_status: not_reviewed
+  legacy_case_path: cases/fault_mode_lem2_ethernet/case.yaml
+charger:
+  model: 180E
+  serial_numbers:
+  - A2491508085
+  firmware_versions: []
+incident:
+  start: '2026-05-28T07:49:30Z'
+  end: '2026-05-30T08:03:00Z'
+  timezone: UTC
+  customer_symptom: 'Connector 2 entered Fault and the platform displayed Meter Offline plus multiple
+    LEM, CP State E, and TCU configuration faults.
+
+    '
+labels:
+  domains:
+  - network
+  - power
+  root_cause_category: internal_network_or_endpoint
+  root_cause_summary: 'TCU communication with Connector 2''s LEM/DC meter at 192.168.10.2 was repeatedly
+    lost. The log localizes the issue to the Connector 2 internal Ethernet path or endpoint, but does
+    not yet prove that the Ethernet cable itself is defective.
+
+    '
+  conclusion_status: probable
+  confidence: medium
+  trigger_hypothesis: 'An intermittent RJ45 connection between TCU eth1/router and LEM2 caused link flaps,
+    meter timeout L20, a group of invalid/unavailable LEM status bits, and the Connector 2 Fault state.
+
+    '
+  expected_findings:
+  - connector2_lem_communication_loss_confirmed
+  - connector2_internal_ethernet_path_fault_probable
+  forbidden_findings:
+  - independent_multiple_lem_hardware_faults
+  - connector1_meter_failure
+  - external_wan_outage
+  evidence: []
+  missing_evidence:
+  - Continuous ping loss to 192.168.10.2 captured during an eth1 flap.
+  - Verbose HTTP results from 192.168.10.2/v1/status and /v2/status during failure.
+  - RJ45 cable-tester result before and after reseating or replacing the cable.
+  - A/B isolation of cable, router/switch port, TCU eth1, and LEM2 hardware.
+  recommended_actions: []
+governance:
+  label_status: reviewed
+  label_version: '1.0'
+  split: unassigned
+  reviewers:
+  - legacy-expert
+  group_keys:
+  - archive:fault mode issue.zip
+  imported_at: '2026-11-25T09:37:10.081617+00:00'
+legacy:
+  detector: lem2_internal_ethernet_fault
+  customer_context_needed:
+  - Whether Connector 2 or its Ethernet cable was serviced before May 25.
+  - Whether vibration, door movement, moisture, or cable strain reproduces the fault.
+  metadata:
+    charger_model: 180E
+    charger_serial_number: A2491508085
+    connector_id: 2
+    lem_ip: 192.168.10.2
+    platform_timezone: UTC+3
+    attachments:
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-151d43a4-5e21-4643-bfaf-58b533919017.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-e3347a1f-9089-431d-a0df-88fff0518def.png

@@ -1,0 +1,44 @@
+batch_id: blind_batch_001
+registered_at: '2026-09-14T09:30:00Z'
+label_policy: user_withheld_until_outputs_frozen
+analyzer_mode: automatic_complete_charger
+
+cases:
+  - id: blind-001
+    input: 'C:\blind case logs\A2532218960VChargerLog.zip'
+    sha256: 075121b5a5d029839a6b90ef31537e367887b2c575f632e68765f7e1768f6f5c
+    filename_hint: null
+    observed_serial_numbers:
+      - A2532218960
+      - A2531900654
+      - A2531900655
+      - A2531900656
+
+  - id: blind-002
+    input: 'C:\blind case logs\A2562706173VChargerLog.zip'
+    sha256: 82ca82313cc3089fd30f00326a324950442a256c95de66c3fd264df116c2da33
+    filename_hint: null
+    observed_serial_numbers:
+      - A2562706173
+      - A2531900661
+
+  - id: blind-003
+    input: 'C:\blind case logs\A2592605090VChargerLog.zip'
+    sha256: a7677a98c0f63835e720a36c602bcca70109ee8616239393b4a3da8a44d30fe7
+    filename_hint: null
+    observed_serial_numbers:
+      - A2592605090
+
+  - id: blind-004
+    input: 'C:\blind case logs\authenticate issue.zip'
+    sha256: 7ea2a95468fd6b3d8d54ef95abf9280e22b00f772778e2f2f0233929ff59f8ad
+    filename_hint: authenticate issue
+    observed_serial_numbers:
+      - A2642900591
+
+  - id: blind-005
+    input: 'C:\blind case logs\Registered VID blocked issue.zip'
+    sha256: 3e8cfbf7235e4258f8989365e6d834492d50e4b7660ab0a5b3f69dfa20e8d1e9
+    filename_hint: Registered VID blocked issue
+    observed_serial_numbers:
+      - A2541205989

@@ -1,0 +1,81 @@
+schema_version: '1.0'
+case_id: maintenance_backend_disconnection_180e
+title: IDC180E maintenance backend repeatedly disconnects
+source:
+  archive_uri: C:\failure case logs\Maintenance backend disconnection.zip
+  raw_access: restricted
+  anonymization_status: not_reviewed
+  legacy_case_path: cases/maintenance_backend_disconnection_180e/case.yaml
+charger:
+  model: 180E
+  serial_numbers:
+  - A2452508759
+  firmware_versions: []
+incident:
+  start: '2026-04-21T00:00:00Z'
+  end: '2026-04-23T00:05:00Z'
+  timezone: UTC
+  customer_symptom: 'The IDC180E repeatedly loses only the Sungrow maintenance backend connection. The
+    customer OCPP backend and SIM appear operational. WebSocket closes are marked remote=true, and a similar
+    issue was reported on April 8.
+
+    '
+labels:
+  domains:
+  - network
+  - ocpp
+  root_cause_category: external_network_or_backend_path
+  root_cause_summary: 'No root cause is confirmed. The evidence isolates the failure to the network path
+    or service used by the maintenance backend. A cellular reset and changed DHCP address coincide with
+    recovery, but the logs do not prove an IP configuration change, SIM failure, carrier routing/NAT issue,
+    firewall issue, or backend fault.
+
+    '
+  conclusion_status: inconclusive
+  confidence: low
+  trigger_hypothesis: 'Destination-specific routing, source-IP/NAT policy, firewall behavior, or the maintenance
+    backend itself may have rejected or failed to route the connection.
+
+    '
+  expected_findings:
+  - maintenance_backend_prolonged_disconnection_confirmed
+  - maintenance_backend_network_path_unresolved
+  forbidden_findings:
+  - eth1_network_manager_conflict_probable
+  - network_connectivity_failure
+  - s20_state_lifecycle_inconsistency_probable
+  evidence: []
+  missing_evidence:
+  - ip addr, ip route, ip rule, and all route tables captured during the outage.
+  - DNS result and TCP/traceroute comparison for ioteu.suncharger.cn:1888 and the customer backend.
+  - Packet capture showing where the maintenance connection fails.
+  - Carrier NAT/public source IP and maintenance-backend firewall/server logs.
+  - Controlled A/B result using the orange TCU SIM.
+  recommended_actions: []
+governance:
+  label_status: reviewed
+  label_version: '1.0'
+  split: unassigned
+  reviewers:
+  - legacy-expert
+  group_keys:
+  - archive:maintenance backend disconnection.zip
+  imported_at: '2026-11-25T09:37:10.086202+00:00'
+legacy:
+  detector: maintenance_backend_disconnect
+  customer_context_needed:
+  - Whether any APN, VPN, firewall, or IP allowlist changed before April 7.
+  - Exact recurrence timestamps and whether other chargers using the same SIM/carrier were affected.
+  metadata:
+    charger_model: 180E
+    analyst_note: 'Monitor for recurrence. During the next event, inspect routes over SSH before restarting
+      networking; if routing is normal, swap the orange TCU SIM and compare.
+
+      '
+    attachments:
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-bcbc1f8f-af2c-47cd-9a6b-0d3623e5f059.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-da2cd64f-685f-46c4-9891-cb2fa6fb8e9d.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-b6fcb2f7-7866-4fde-9a8f-c5a56583e8fe.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-7da8eb46-53e1-4557-b9bf-0f76e13c2f8a.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5fd5bc331342acd34e0ad_images_image-4b4100d7-0e90-4ec3-8a3a-aed1413d51a3.png
+    - C:\Users\YuNi\.cursor\projects\c-AI-assisted-log-analysis-tool\assets\c__Users_YuNi_AppData_Roaming_Cursor_User_workspaceStorage_59b100b085d5bc331342acd34e0ad_images_image-45ef9a49-14a8-4bea-9f52-930510326b1b.png

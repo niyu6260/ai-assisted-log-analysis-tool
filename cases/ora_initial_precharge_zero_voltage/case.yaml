@@ -1,0 +1,63 @@
+id: ora_initial_precharge_zero_voltage
+title: IDC180E Great Wall ORA initial PreCharge target interpreted as 0 V
+detector: initial_precharge_zero_voltage
+input: 'C:\failure case logs\EV_Target_C=0 issue.zip'
+scope: charging_session
+
+incident:
+  start: '2026-08-27T11:10:00Z'
+  end: '2026-08-27T11:42:59Z'
+
+source_selection:
+  serial_number: A2540321171
+  modules:
+    - CCU_Ethernet1
+    - CCU_Ethernet2
+    - Fault_State1
+    - Fault_State2
+  include_rotated: false
+
+ground_truth:
+  symptom: >
+    Great Wall ORA 07 repeatedly fails to start DC charging. The vehicle ends
+    PreCharge normally after the charger output voltage collapses and cannot
+    recover to the later requested battery voltage in time.
+  root_cause: >
+    The first PreCharge message contains no valid EV_Target_V, so the CCU
+    internally handles the target as 0 V and collapses output. The vehicle then
+    supplies a valid target near 374 V, but the power path cannot recover before
+    the vehicle's approximately seven-second timeout. CCU software needs
+    compatibility handling for an initial zero or missing target voltage.
+  confidence: high
+  confirmation_status: confirmed
+  trigger_hypothesis: >
+    ORA sends its usable battery-voltage target one PreCharge message later than
+    expected. Existing CCU logic immediately treats the first absent target as
+    a command to reduce output to zero.
+  missing_proof:
+    - Raw decoded V2G message fields proving whether EV_TargetVoltage is absent or explicitly zero in the first request.
+    - PCU allocation and enable-state trace at the instant the CCU processes the zero target.
+    - Verification logs after the proposed compatibility software change.
+  customer_context_needed:
+    - Great Wall ORA software version and whether newer vehicle firmware changes the first PreCharge request.
+    - Confirmation of all 15 backend attempts; 13 zero-target attempts are retained in the supplied CCU logs.
+
+expected:
+  findings:
+    - repeated_initial_precharge_zero_voltage_confirmed
+    - zero_target_output_collapse_confirmed
+    - ora_precharge_compatibility_software_change_required
+  forbidden_findings:
+    - charger_hardware_failure
+    - charger_fault_code_caused_stop
+    - insulation_failure
+
+metadata:
+  charger_model: 180E
+  vehicle: Great Wall ORA 07
+  charger_serial_number: A2540321171
+  representative_connector_id: 1
+  representative_attempt_utc: '2026-08-27T11:24:41.463Z'
+  customer_attempt_count: 15
+  log_confirmed_zero_target_attempts: 13
+  expected_target_voltage_V: 374.2

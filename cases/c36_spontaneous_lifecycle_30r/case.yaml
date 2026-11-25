@@ -1,0 +1,59 @@
+id: c36_spontaneous_lifecycle_30r
+title: 30R C36 spontaneously clears and returns with CP State E
+detector: c36_cp_state_e_lifecycle
+input: 'C:\failure case logs\C36 issue 02.zip'
+scope: non_charging_incident
+
+incident:
+  start: '2026-08-27T03:20:00Z'
+  end: '2026-08-28T09:00:00Z'
+
+source_selection:
+  serial_number: A25C0407837
+  modules:
+    - CCU_Ethernet1
+    - MainProcess
+    - ocpp
+  include_rotated: false
+
+ground_truth:
+  symptom: >
+    C36 disappears during the night and reappears later without anyone
+    operating the emergency button.
+  root_cause: >
+    Connector 1 repeatedly leaves and re-enters non-forced CP State E. The
+    intermittent condition is localized to the CP-to-PE circuit or CCU sensing
+    path; logs alone cannot distinguish a true physical pull-down from false
+    sampling.
+  confidence: medium
+  confirmation_status: probable
+  trigger_hypothesis: >
+    Intermittent moisture, contamination, harness/contact resistance, leakage,
+    electrical noise, or a CCU CP sensing defect.
+  missing_proof:
+    - CP-to-PE voltage measured while C36 is active and inactive.
+    - Oscilloscope capture at the C36 set/recover transition.
+    - Harness inspection and isolation test results.
+    - CCU raw ADC samples for the CP input.
+
+expected:
+  findings:
+    - c36_cp_state_e_mapping_confirmed
+    - c36_spontaneous_cp_state_lifecycle_confirmed
+    - connector1_cp_signal_path_fault_probable
+  forbidden_findings:
+    - c36_caused_by_emergency_button
+    - automatic_timeout_clear
+    - ac_input_voltage_fault
+
+metadata:
+  charger_model: 30R
+  connector_id: 1
+  analysis_mode: spontaneous_lifecycle
+  firmware_updated_on: '2026-08-24'
+  observed_recoveries_utc:
+    - '2026-08-27T03:26:55Z'
+    - '2026-08-28T03:15:24Z'
+  observed_reappearances_utc:
+    - '2026-08-27T08:57:31Z'
+    - '2026-08-28T08:57:29Z'

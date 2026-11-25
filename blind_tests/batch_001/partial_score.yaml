@@ -1,0 +1,75 @@
+batch_id: blind_batch_001
+score_status: partial
+revealed_cases: 2
+total_cases: 5
+scored_case_ids:
+  - blind-004
+  - blind-005
+
+metrics:
+  expected_finding_recall:
+    matched: 0
+    total: 6
+    rate: 0.0
+  affected_domain_accuracy:
+    matched_cases: 0
+    total_cases: 2
+    rate: 0.0
+  root_cause_category_accuracy:
+    matched_cases: 0
+    total_cases: 2
+    rate: 0.0
+  conclusion_status_accuracy:
+    matched_cases: 0
+    total_cases: 2
+    rate: 0.0
+  unsafe_overclaim_rate:
+    cases: 0
+    total_cases: 2
+    rate: 0.0
+  conservative_safety_rate:
+    safe_cases: 2
+    total_cases: 2
+    rate: 1.0
+
+case_scores:
+  blind-004:
+    frozen_result: inconclusive
+    expert_status: confirmed
+    domain_match: false
+    root_cause_match: false
+    status_match: false
+    unsafe_overclaim: false
+    assessment: >
+      Complete miss. The generic analyzer did not correlate the successful
+      initial BootNotification, remote code-1006 close, transport reconnect
+      without a new BootNotification, locally ignored Authorize requests,
+      NullPointerException, InternalError, and terminal NoEnable/S20 symptom.
+
+  blind-005:
+    frozen_result: inconclusive
+    expert_status: confirmed
+    domain_match: false
+    root_cause_match: false
+    status_match: false
+    unsafe_overclaim: false
+    assessment: >
+      Complete miss. The generic analyzer did not correlate explicit EVO
+      Blocked responses with disabled local authorization cache and later
+      acceptance of the same VID. It also did not separate this backend policy
+      result from internal Terminal-to-Power-Cabinet code-1007 invalid-UTF8 and
+      Heartbeat failures that caused Available/Unavailable flapping.
+
+capability_gaps:
+  - OCPP connection lifecycle must distinguish transport Connected from BootNotification Accepted.
+  - A reconnect must open a new boot-state epoch and detect a missing BootNotification resend.
+  - Authorize request/response IDs and local boot-state guards need causal correlation.
+  - Null/empty authorization results must be linked to InternalError and terminal-facing symptoms.
+  - Explicit backend Blocked responses must override local-cache hypotheses when cache is disabled.
+  - Later acceptance of the same VID should be treated as counter-evidence against VID-format failure.
+  - Internal powercabinet.local WebSocket failures must be separated from external backend connectivity.
+  - Code 1007 invalid-UTF8 closes and Heartbeat timeouts must be correlated with status flapping.
+
+change_policy: >
+  Do not implement detector changes until blind-001 through blind-003 labels
+  are revealed and the complete five-case batch has been scored.

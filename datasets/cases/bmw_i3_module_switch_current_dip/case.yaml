@@ -1,0 +1,71 @@
+schema_version: '1.0'
+case_id: bmw_i3_module_switch_current_dip
+title: BMW i3 stops after IDC480E power-module current dip
+source:
+  archive_uri: C:\failure case logs\BMW I3 charging issue.zip
+  raw_access: restricted
+  anonymization_status: not_reviewed
+  legacy_case_path: cases/bmw_i3_module_switch_current_dip/case.yaml
+charger:
+  model: 480E
+  serial_numbers:
+  - A2611304431
+  firmware_versions: []
+incident:
+  start: '2026-05-14T07:28:50Z'
+  end: '2026-05-14T07:32:40Z'
+  timezone: UTC
+  customer_symptom: 'BMW i3 charging attempts on Connector 1 at 10:29 and 10:31:40 UTC+3 terminate while
+    current is ramping upward.
+
+    '
+labels:
+  domains:
+  - power
+  - iso15118
+  root_cause_category: power_conversion_or_module
+  root_cause_summary: 'The BMW i3 increases EVTargetCurrent step by step. When output crosses the capacity
+    of one 30 kW module, the old PCU logic enables another module and redistributes current. The resulting
+    transient output-current drop causes the vehicle to terminate charging.
+
+    '
+  conclusion_status: confirmed
+  confidence: high
+  trigger_hypothesis: 'Avoiding module-count changes during the rising-current phase prevents the transient.
+    The updated PCU logic therefore opens two modules immediately when a BMW i3 session is detected.
+
+    '
+  expected_findings:
+  - bmw_i3_stepwise_target_current_ramp_confirmed
+  - bmw_i3_module_switch_current_dip_root_cause
+  forbidden_findings:
+  - power_module_fault
+  - s3_vehicle_emergency_stop
+  - ev_invalid_target_voltage_precharge_stop_confirmed
+  evidence: []
+  missing_evidence:
+  - Direct PCU module-on/module-count telegram at the exact current-drop timestamp.
+  - High-rate per-module current before and after current redistribution.
+  - Successful post-fix trace using the two-module pre-enable logic.
+  recommended_actions: []
+governance:
+  label_status: reviewed
+  label_version: '1.0'
+  split: unassigned
+  reviewers:
+  - legacy-expert
+  group_keys:
+  - archive:bmw i3 charging issue.zip
+  imported_at: '2026-11-25T09:37:10.061250+00:00'
+legacy:
+  detector: bmw_i3_module_switch_dip
+  customer_context_needed:
+  - BMW i3 model year and vehicle software version.
+  - Old and fixed PCU software versions.
+  metadata:
+    charger_model: 480E
+    connector_id: 1
+    reported_attempts:
+    - '2026-05-14T10:29:00+03:00'
+    - '2026-05-14T10:31:40+03:00'
+    fix: Pre-enable two 30 kW power modules for detected BMW i3 sessions.

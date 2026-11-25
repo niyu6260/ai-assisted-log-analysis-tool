@@ -1,0 +1,35 @@
+id: fixture_c36_spontaneous_lifecycle
+title: Fixture C36 spontaneous clear and reappearance
+detector: c36_cp_state_e_lifecycle
+input: c36_lifecycle
+scope: non_charging_incident
+
+incident:
+  start: '2026-08-27T03:20:00Z'
+  end: '2026-08-28T09:00:00Z'
+
+source_selection:
+  serial_number: A25C0407837
+  modules:
+    - CCU_Ethernet1
+    - MainProcess
+  include_rotated: false
+
+ground_truth:
+  symptom: C36 clears and reappears without emergency input.
+  root_cause: Intermittent CP-to-PE or CCU sensing path.
+  confidence: medium
+  confirmation_status: probable
+  missing_proof:
+    - CP-to-PE voltage and oscilloscope trace.
+
+expected:
+  findings:
+    - c36_cp_state_e_mapping_confirmed
+    - c36_spontaneous_cp_state_lifecycle_confirmed
+    - connector1_cp_signal_path_fault_probable
+  forbidden_findings:
+    - c36_caused_by_emergency_button
+
+metadata:
+  analysis_mode: spontaneous_lifecycle

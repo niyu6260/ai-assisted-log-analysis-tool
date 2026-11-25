@@ -1,0 +1,39 @@
+id: fixture_lem_http_service_hang
+title: Fixture Connector 2 LEM HTTP service hang
+detector: lem2_http_service_hang
+input: lem_http_hang
+scope: non_charging_incident
+
+incident:
+  start: '2026-06-24T09:20:00Z'
+  end: '2026-07-01T10:40:00Z'
+
+source_selection:
+  serial_number: A2491508085
+  modules:
+    - MainProcess
+    - router_network
+  include_rotated: false
+
+ground_truth:
+  symptom: Connector 2 meter remained offline while Connector 1 worked.
+  root_cause: Connector 2 LEM HTTP service stopped responding.
+  confidence: medium
+  confirmation_status: probable
+  missing_proof:
+    - LEM internal watchdog and task logs.
+    - In-package post-restart logs.
+
+expected:
+  findings:
+    - connector2_meter_http_timeout_persistent_confirmed
+    - connector2_lem_http_service_hang_probable
+  forbidden_findings:
+    - broken_ethernet_cable_confirmed
+
+metadata:
+  field_tests:
+    fault_ping_passed: true
+    fault_http_failed: true
+    cable_continuity_passed: true
+    power_cycle_recovered_http: true

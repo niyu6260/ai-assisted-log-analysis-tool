@@ -1,0 +1,65 @@
+schema_version: '1.0'
+case_id: c36_estop_independence_30r
+title: 30R C36 predates and survives emergency-button C2/C37
+source:
+  archive_uri: C:\failure case logs\C36 issue 01.zip
+  raw_access: restricted
+  anonymization_status: not_reviewed
+  legacy_case_path: cases/c36_estop_independence_30r/case.yaml
+charger:
+  model: 30R
+  serial_numbers:
+  - A25C0407837
+  firmware_versions: []
+incident:
+  start: '2026-08-26T09:05:50Z'
+  end: '2026-08-26T09:08:00Z'
+  timezone: UTC
+  customer_symptom: 'Connector 1 C36 remains active after the emergency button is released, while C2 and
+    C37 clear.
+
+    '
+labels:
+  domains:
+  - cp
+  root_cause_category: cp_physical_or_sensing_path
+  root_cause_summary: 'C36 is CCU alarm 80 for non-forced CP State E. It was active before the emergency-button
+    event and has an independent lifecycle from C2/C37.
+
+    '
+  conclusion_status: confirmed
+  confidence: high
+  trigger_hypothesis: 'Connector 1 intermittently enters a genuine or sampled CP State E.
+
+    '
+  expected_findings:
+  - c36_cp_state_e_mapping_confirmed
+  - c36_preceded_estop_independent_confirmed
+  - c36_persisted_after_estop_release_confirmed
+  forbidden_findings:
+  - c36_caused_by_emergency_button
+  - ac_input_voltage_fault
+  evidence: []
+  missing_evidence:
+  - Physical CP-to-PE voltage during active C36.
+  - Oscilloscope capture of short CP voltage dips.
+  recommended_actions: []
+governance:
+  label_status: reviewed
+  label_version: '1.0'
+  split: unassigned
+  reviewers:
+  - legacy-expert
+  group_keys:
+  - archive:c36 issue 01.zip
+  imported_at: '2026-11-25T09:37:10.063019+00:00'
+legacy:
+  detector: c36_cp_state_e_lifecycle
+  customer_context_needed: []
+  metadata:
+    charger_model: 30R
+    connector_id: 1
+    analysis_mode: estop_independence
+    firmware_updated_on: '2026-08-24'
+    c36_first_report_utc: '2026-08-26T09:06:19Z'
+    emergency_event_utc: '2026-08-26T09:07:27Z'

@@ -1,0 +1,131 @@
+rules:
+  - id: normal_ev_stop
+    severity: info
+    confidence: high
+    title: Normal EV-initiated charging complete
+    explanation: >
+      Vehicle set ChargingComplete=1 and triggered EV normal stop
+      (ChargeProgress Stop / EV_Normal_Stop). This is a healthy end of session,
+      not a charger fault.
+    suggested_customer_reply: >
+      The session ended normally after the EV reported charging complete.
+      No charger-side fault was identified for this stop.
+
+  - id: isolation_invalid_during_cablecheck
+    severity: info
+    confidence: high
+    title: Isolation Invalid during CableCheck (not a fault)
+    explanation: >
+      EVSEIsolationStatus=Invalid together with IsolationMonitoringActive /
+      CableCheck Ongoing means the isolation measurement is not ready yet.
+      Invalid is not the same as Fault.
+    suggested_customer_reply: >
+      During CableCheck, IsolationStatus=Invalid means the result is not ready yet,
+      not that isolation failed. A failed check would report Fault.
+
+  - id: precharge_voltage_diff_trip
+    severity: high
+    confidence: medium
+    title: Precharge aborted by EV/output voltage difference protection
+    explanation: >
+      Shortly after CableCheck/PreCharge, charger raised an output-vs-EV max allowed
+      voltage difference alarm and performed EVSE emergency stop / PreCharge fault.
+      Common on low-voltage EVs when residual CableCheck voltage is still high.
+      Firmware compares EV-side sampled voltage minus Maximum_Allowed_Voltage_BMS (>12V).
+    suggested_customer_reply: >
+      Precharge failed due to charger-side voltage difference protection after CableCheck.
+      This is often seen on low-voltage vehicles when DC bus voltage has not settled
+      before PreCharge. Not assessed as a random single-connector hardware defect.
+
+  - id: vehicle_emergency_stop
+    severity: high
+    confidence: medium
+    title: Vehicle-side emergency stop (CP C/D to B)
+    explanation: >
+      Session stopped with EvEmergencyStop / C_To_B without ChargingComplete.
+      Indicates vehicle-initiated abort rather than normal completion.
+    suggested_customer_reply: >
+      The session was aborted by a vehicle-side emergency stop (CP state change),
+      not by a normal ChargingComplete sequence.
+
+  - id: ev_limited_stable_power
+    severity: info
+    confidence: medium
+    title: Stable EV-limited charging power
+    explanation: >
+      Meter values show stable power while Current.Offered remains higher than
+      imported current, suggesting EV target/self-limit rather than charger capping.
+    suggested_customer_reply: >
+      Charging power was stable and below the charger offered current limit,
+      consistent with EV-side current limitation.
+
+  - id: ev_target_current_stopped
+    severity: medium
+    confidence: low
+    title: EV target current updates stopped mid-session
+    explanation: >
+      EVTargetCurrent was present early, then session later ended with emergency/CP stop
+      without continuous target-current updates. Pattern previously seen on high-power
+      sessions where EV stopped sending target current.
+    suggested_customer_reply: >
+      Logs suggest the EV stopped updating target current before the session aborted.
+      Please review vehicle V2G CurrentDemand behavior for this session.
+
+  - id: ocpp_local_stop_s3
+    severity: medium
+    confidence: medium
+    title: OCPP Local stop with vendorErrorCode S3
+    explanation: >
+      StopTransaction reason=Local correlated with StatusNotification vendorErrorCode S3,
+      often accompanying local/CP-related finishing sequence.
+    suggested_customer_reply: >
+      OCPP reports a Local stop with vendor code S3. Correlate with CCU CP/stop reason
+      for the definitive root cause.
+
+  - id: cp_signal_fault
+    severity: high
+    confidence: medium
+    title: CP or PP signal fault
+    explanation: >
+      The physical connection layer reported an invalid, lost, or faulted CP/PP signal.
+      Review this event before interpreting later protocol disconnect messages.
+
+  - id: slac_negotiation_failure
+    severity: high
+    confidence: medium
+    title: PLC/SLAC negotiation failed
+    explanation: >
+      PLC association did not complete because of a timeout, missing response, or match
+      failure. ISO 15118 cannot start until this layer succeeds.
+
+  - id: iso15118_protocol_failure
+    severity: high
+    confidence: medium
+    title: ISO 15118 session failed
+    explanation: >
+      The V2G session contains a failed response, timeout, EXI decoding problem, or
+      invalid protocol transition.
+
+  - id: power_module_fault
+    severity: high
+    confidence: medium
+    title: PCU or power-module fault
+    explanation: >
+      A power conversion module reported a protection trip, alarm, or unavailable state
+      that can prevent requested voltage or current from being delivered.
+
+  - id: ocpp_request_failure
+    severity: medium
+    confidence: medium
+    title: OCPP request rejected or failed
+    explanation: >
+      The charger/backend exchange contains a CALLERROR, rejected transaction, or
+      protocol constraint failure.
+
+  - id: network_connectivity_failure
+    severity: high
+    confidence: medium
+    title: Network connectivity failure
+    explanation: >
+      Link, DNS, route, TCP, or TLS evidence indicates the charger could not establish
+      or maintain the required backend connection.

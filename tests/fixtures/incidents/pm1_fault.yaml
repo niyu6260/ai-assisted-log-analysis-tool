@@ -1,0 +1,34 @@
+id: fixture_pm1_fan6_fault
+title: Fixture PM1 Fan 6 fault
+detector: single_pm_fan_fault
+input: pm1_fault
+scope: charging_session
+
+incident:
+  start: '2026-08-31T14:18:50Z'
+  end: '2026-08-31T14:47:00Z'
+
+source_selection:
+  serial_number: A2620503658
+  modules:
+    - CCU_Ethernet1
+    - Fault_StatePm1
+    - FWUpdate
+  include_rotated: false
+
+ground_truth:
+  symptom: Charging ends after PM1 fault.
+  root_cause: PM1 Fan 6 or feedback path fault removes the only module.
+  confidence: medium
+  confirmation_status: probable
+  missing_proof:
+    - Fan supply and tachometer measurements.
+
+expected:
+  findings:
+    - sdsp_update_success_pm_fault_persisted_confirmed
+    - charger_25kw_limit_operated_correctly_confirmed
+    - pm1_fault_removed_only_power_module_confirmed
+    - pm1_fan6_or_feedback_path_fault_probable
+  forbidden_findings:
+    - tesla_compatibility_failure

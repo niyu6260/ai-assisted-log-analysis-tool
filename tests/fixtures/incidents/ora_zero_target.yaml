@@ -1,0 +1,36 @@
+id: fixture_ora_initial_precharge_zero_voltage
+title: Fixture ORA initial PreCharge zero voltage
+detector: initial_precharge_zero_voltage
+input: ora_zero_target
+scope: charging_session
+
+incident:
+  start: '2026-08-27T11:10:00Z'
+  end: '2026-08-27T11:42:59Z'
+
+source_selection:
+  serial_number: A2540321171
+  modules:
+    - CCU_Ethernet1
+    - CCU_Ethernet2
+  include_rotated: false
+
+ground_truth:
+  symptom: ORA terminates PreCharge after an initial zero/missing target voltage.
+  root_cause: CCU output collapses before the valid target arrives.
+  confidence: high
+  confirmation_status: confirmed
+  missing_proof:
+    - Raw V2G field decode.
+    - PCU enable-state trace.
+
+expected:
+  findings:
+    - repeated_initial_precharge_zero_voltage_confirmed
+    - zero_target_output_collapse_confirmed
+    - ora_precharge_compatibility_software_change_required
+  forbidden_findings:
+    - charger_hardware_failure
+
+metadata:
+  representative_attempt_utc: '2026-08-27T11:24:41.463Z'
